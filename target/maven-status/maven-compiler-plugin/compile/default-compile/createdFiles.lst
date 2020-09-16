@@ -1,0 +1,17 @@
+com\test\TestService.class
+com\app\api\CurrentMeasurementDataService.class
+com\app\api\HourlyForecastDataService.class
+com\app\classes\HistoricalMeasurement.class
+com\app\classes\Station.class
+com\app\api\DailyForecastDataService.class
+com\app\api\DailyForecastResource.class
+com\app\api\HourlyForecastResource.class
+com\app\api\StationDataService.class
+com\app\api\StationResource.class
+com\app\classes\HourlyForecast.class
+com\app\api\CurrentMeasurementResource.class
+com\app\classes\DailyForecast.class
+com\app\api\HistoricalMeasurementResource.class
+com\app\api\ApiTest.class
+com\app\classes\CurrentMeasurement.class
+com\app\api\HistoricalMeasurementDataService.class

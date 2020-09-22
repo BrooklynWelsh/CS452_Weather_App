@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.app.classes.Station;
+
 
 
 public class StationDataService {
@@ -53,5 +55,17 @@ public class StationDataService {
 		}
 		
 		return rows;
+	}
+	
+	public static int updateStationEntry(Connection conn, int id, Station station) throws SQLException{
+		Statement insert = conn.createStatement();
+		return insert.executeUpdate("UPDATE stations SET (name, latitude, longitude, altitude) = (" + station.getName() + ","
+									+ station.getLatitude() + "," + station.getLongitude() + "," + station.getAltitude() + ")"); 
+	}
+	
+	public static int createStationEntry(Connection conn, Station station) throws SQLException{
+		Statement insert = conn.createStatement();
+		return insert.executeUpdate("INSERT into stations VALUES(" + station.getName() + "," + station.getLatitude() + "," + station.getLongitude() + ","
+								+ station.getAltitude()); 
 	}
 }

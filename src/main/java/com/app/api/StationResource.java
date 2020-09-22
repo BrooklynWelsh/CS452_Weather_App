@@ -8,17 +8,22 @@ import java.util.Map;
 import java.util.Properties;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import com.app.classes.CurrentMeasurement;
 import com.app.classes.DailyForecast;
 import com.app.classes.HistoricalMeasurement;
 import com.app.classes.HourlyForecast;
+import com.app.classes.Station;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 @Path("stations")
 public class StationResource {
@@ -45,8 +50,13 @@ public class StationResource {
 		// Connect to the postgres DB
 		Connection weatherDB = establishConnection();
 
-
-	
+		
+	/*											*
+	 * 											*
+	 * 				Begin GET functions			*	
+	 * 											*
+	 * 											*
+	 */										
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getStations() throws SQLException, JsonProcessingException{
@@ -70,7 +80,7 @@ public class StationResource {
 		
 		ObjectMapper mapper = new ObjectMapper();
 		String json = mapper.writeValueAsString(items);
-		return Response.ok(json, MediaType.APPLICATION_JSON).build();
+		return Response.ok(json, MediaType.APPLICATION_JSON).build(); 
 	}
 	
 	@GET
@@ -117,4 +127,38 @@ public class StationResource {
         return Response.ok(json, MediaType.APPLICATION_JSON).build();
 	}
 	
+	/*											*
+	 * 											*
+	 * 				End GET functions			*	
+	 * 											*
+	 * 			   Begin PUT functions			*
+	 */		
+		
+	
+	@PUT
+	@Path("{id}")
+	public Response putStation(@PathParam("id") int id, Station update) throws SQLException, JsonProcessingException{
+		Connection conn = establishConnection();
+		List<Map<String,Object>> stationMap = StationDataService.getStation(conn,id);
+		ObjectMapper mapper = new ObjectMapper();
+		Station currentStation = mapper.convertValue(stationMap.get(0),Station.class);
+		int response = StationDataService.updateStationEntry(conn, id, update);
+		if(response == 0) return Response.status(Status.INTERNAL_SERVER_ERROR).entity("UPDATE statment failed.").build();
+		else return Response.ok().build();
+	}
+	
+	/*											*
+	 * 											*
+	 * 				End PUT functions			*	
+	 * 											*
+	 * 				Begin POST functions		*
+	 */	
+	
+	@POST
+	public Response postStation(Station newStation) throws SQLException, JsonProcessingException{
+		Connection conn = establishConnection();
+		int response = StationDataService.createStationEntry(conn, newStation);
+		if(response == 0) return Response.status(Status.INTERNAL_SERVER_ERROR).entity("INSERT statment failed.").build();
+		else return Response.ok().build();
+	} 
 }

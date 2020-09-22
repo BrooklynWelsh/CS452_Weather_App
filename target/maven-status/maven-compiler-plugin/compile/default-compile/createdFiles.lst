@@ -5,6 +5,7 @@ com\app\classes\HistoricalMeasurement.class
 com\app\classes\Station.class
 com\app\api\DailyForecastDataService.class
 com\app\api\DailyForecastResource.class
+com\app\client\CommandLineClient.class
 com\app\api\HourlyForecastResource.class
 com\app\api\StationDataService.class
 com\app\api\StationResource.class

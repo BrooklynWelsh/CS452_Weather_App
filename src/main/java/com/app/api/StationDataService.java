@@ -36,25 +36,22 @@ public class StationDataService {
 		return rows;
 	}
 	
-	public static List<Map<String,Object>> getStation(Connection conn, int id) throws SQLException{
-		List<Map<String,Object>> rows = new ArrayList<>();
+	public static Map<String,Object> getStation(Connection conn, int id) throws SQLException{
+		Map<String,Object> row = new HashMap<>();
 		Statement stations = conn.createStatement();
 		ResultSet results = stations.executeQuery("SELECT * FROM stations WHERE stationid = " + id + ";");
 		ResultSetMetaData columns = results.getMetaData();
 		int columnCount = columns.getColumnCount();
 		
 		while(results.next()) {
-			Map<String, Object> row = new HashMap<>();
-			
 			for (int i = 1; i <= columnCount; i++) {
 		           String colName = columns.getColumnName(i);
 		           Object colVal = results.getObject(i);
 		           row.put(colName, colVal);
 			}
-			rows.add(row);
 		}
 		
-		return rows;
+		return row;
 	}
 	
 	public static int updateStationEntry(Connection conn, int id, Station station) throws SQLException{

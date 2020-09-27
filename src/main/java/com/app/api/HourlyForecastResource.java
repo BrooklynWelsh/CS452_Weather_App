@@ -23,19 +23,24 @@ public class HourlyForecastResource {
 		Statement stations = conn.createStatement();
 		ResultSet results = stations.executeQuery("SELECT * FROM forecast_hourly WHERE stationid = " + id + ";");
 		
-		results.next();
 		// Create a DailyForecast object, and set the appropriate fields using the ResultSet
 		HourlyForecast forecast = new HourlyForecast();
-		forecast.setDate(results.getTime("hour").toLocalTime());
-		forecast.setFTemp(results.getFloat("fahrenheit"));
-		forecast.setCTemp(results.getFloat("celsius"));
-		forecast.setWindSpeed(results.getFloat("wind_speed"));
-		forecast.setWindGust(results.getFloat("wind_gust"));
-		forecast.setPressure(results.getFloat("pressure"));
-		forecast.setHumidity(results.getFloat("humidity"));
-		forecast.setRainProb(results.getFloat("rain_probability"));
-		forecast.setCloud(results.getString("cloud"));
-		forecast.setHeatIndex(results.getFloat("heatindex"));
+		
+		if(results.next() == false) {
+			forecast = null;
+		}
+		else {
+			forecast.setDate(results.getTime("hour").toLocalTime());
+			forecast.setFTemp(results.getFloat("fahrenheit"));
+			forecast.setCTemp(results.getFloat("celsius"));
+			forecast.setWindSpeed(results.getFloat("wind_speed"));
+			forecast.setWindGust(results.getFloat("wind_gust"));
+			forecast.setPressure(results.getFloat("pressure"));
+			forecast.setHumidity(results.getFloat("humidity"));
+			forecast.setRainProb(results.getFloat("rain_probability"));
+			forecast.setCloud(results.getString("cloud"));
+			forecast.setHeatIndex(results.getFloat("heatindex"));
+		}
 		
 		return forecast;
 	}

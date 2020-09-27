@@ -1,10 +1,17 @@
 package com.app.classes;
 
 import java.time.LocalDate;
+import com.app.classes.LocalDateDeserializer;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 public class DailyForecast {
+	@JsonDeserialize(using = LocalDateDeserializer.class)
+	@JsonSerialize(using = LocalDateSerializer.class)
 	LocalDate date;
-	int stationid;
+	
+	int id;
 	float fahrenheit_high;
 	float fahrenheit_low;
 	float celsius_high;
@@ -20,7 +27,7 @@ public class DailyForecast {
 	public LocalDate getDate() {return date;}
 	public void setDate(LocalDate date) {this.date = date;}
 	
-	public int getId() {return stationid;}
+	public int getId() {return id;}
 	
 	public float getFHigh() {return fahrenheit_high;}
 	public void setFHigh(float high) {this.fahrenheit_high = high;}
@@ -54,4 +61,13 @@ public class DailyForecast {
 	
 	public float getHeatIndex() {return heatindex;}
 	public void setHeatIndex(float heatindex) {this.heatindex = heatindex;}
+	
+	@Override
+	public String toString() {
+		return "DailyForecast [date=" + date + ", id=" + id + ", fahrenheit_high=" + fahrenheit_high
+				+ ", fahrenheit_low=" + fahrenheit_low + ", celsius_high=" + celsius_high + ", celsius_low="
+				+ celsius_low + ", wind_speed=" + wind_speed + ", wind_gust=" + wind_gust + ", pressure=" + pressure
+				+ ", humidity=" + humidity + ", rain_probability=" + rain_probability + ", cloud=" + cloud
+				+ ", heatindex=" + heatindex + "]";
+	}
 }

@@ -2,10 +2,15 @@ package com.app.classes;
 
 import java.time.LocalTime;
 
-public class HourlyForecast {
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+public class HourlyForecast {
+	@JsonDeserialize(using = LocalTimeDeserializer.class)
+	@JsonSerialize(using = LocalTimeSerializer.class)
 	LocalTime date;
-	int stationid;
+	
+	int id;
 	float fahrenheit;
 	float celsius;
 	float wind_speed;
@@ -19,7 +24,7 @@ public class HourlyForecast {
 	public LocalTime getDate() {return date;}
 	public void setDate(LocalTime date) {this.date = date;}
 	
-	public int getId() {return stationid;}
+	public int getId() {return id;}
 	
 	public float getFTemp() {return fahrenheit;}
 	public void setFTemp(float fahrenheit) {this.fahrenheit = fahrenheit;}
@@ -47,4 +52,12 @@ public class HourlyForecast {
 	
 	public float getHeatIndex() {return heatindex;}
 	public void setHeatIndex(float heatindex) {this.heatindex = heatindex;}
+	
+	@Override
+	public String toString() {
+		return "HourlyForecast [date=" + date + ", stationid=" + id + ", fahrenheit=" + fahrenheit + ", celsius="
+				+ celsius + ", wind_speed=" + wind_speed + ", wind_gust=" + wind_gust + ", pressure=" + pressure
+				+ ", humidity=" + humidity + ", rain_probability=" + rain_probability + ", cloud=" + cloud
+				+ ", heatindex=" + heatindex + "]";
+	}
 }

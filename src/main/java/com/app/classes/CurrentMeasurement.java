@@ -1,7 +1,7 @@
 package com.app.classes;
 
 public class CurrentMeasurement {
-	int stationid;
+	int id;
 	float fahrenheit;
 	float celsius;
 	float wind_speed;
@@ -12,7 +12,7 @@ public class CurrentMeasurement {
 	String cloud;
 	float heatindex;
 
-	public int getId() {return stationid;}
+	public int getId() {return id;}
 	
 	public float getFTemp() {return fahrenheit;}
 	public void setFTemp(float fahrenheit) {this.fahrenheit = fahrenheit;}
@@ -40,4 +40,11 @@ public class CurrentMeasurement {
 	
 	public float getHeatIndex() {return heatindex;}
 	public void setHeatIndex(float heatindex) {this.heatindex = heatindex;}
+
+	@Override
+	public String toString() {
+		return "CurrentMeasurement [stationid=" + id + ", fahrenheit=" + fahrenheit + ", celsius=" + celsius
+				+ ", wind_speed=" + wind_speed + ", wind_gust=" + wind_gust + ", pressure=" + pressure + ", humidity="
+				+ humidity + ", rain=" + rain + ", cloud=" + cloud + ", heatindex=" + heatindex + "]";
+	}
 }

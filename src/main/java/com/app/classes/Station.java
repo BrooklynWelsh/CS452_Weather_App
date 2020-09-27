@@ -2,10 +2,13 @@ package com.app.classes;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Station implements Serializable{
 	public Station() {
 	}
 	
+	private @JsonProperty("stationid") int stationid;
 	private String name;
 	private float latitude;
 	private float longitude;
@@ -29,4 +32,9 @@ public class Station implements Serializable{
 		 this.setLongitude(otherStation.getLongitude());
 		 this.setAltitude(otherStation.getAltitude());
 	 }
+	@Override
+	public String toString() {
+		return "Station [stationid=" + stationid + ", name=" + name + ", latitude=" + latitude + ", longitude="
+				+ longitude + ", altitude=" + altitude + "]";
+	}
 }

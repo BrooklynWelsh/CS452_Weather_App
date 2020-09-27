@@ -59,12 +59,12 @@ public class StationResource {
 	 */										
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getStations() throws SQLException, JsonProcessingException{
-		
-		 Connection connection = establishConnection();
-
-		 List<Map<String,Object>> items = StationDataService.getStations(connection);
-		 
+	public Response getStations() throws SQLException, JsonProcessingException{		
+		Connection connection = establishConnection();
+		List<Map<String,Object>> items = StationDataService.getStations(connection);
+		if(items.isEmpty()) {
+			return Response.status(Response.Status.NO_CONTENT).entity("Sorry, but we couldn't find any stations in the database.").build();
+		}
 		ObjectMapper mapper = new ObjectMapper();
 		String json = mapper.writeValueAsString(items);
 		return Response.ok(json, MediaType.APPLICATION_JSON).build();
@@ -76,7 +76,7 @@ public class StationResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getStation(@PathParam("id") int id) throws SQLException, JsonProcessingException {
 		Connection conn = establishConnection();
-		List<Map<String,Object>> items = StationDataService.getStation(conn, id);
+		Map<String,Object> items = StationDataService.getStation(conn, id);
 		
 		ObjectMapper mapper = new ObjectMapper();
 		String json = mapper.writeValueAsString(items);
@@ -89,9 +89,14 @@ public class StationResource {
 		 	Connection conn = establishConnection();
 	        DailyForecast forecast =  DailyForecastResource.getForecast(conn,id);
 	        
-	        ObjectMapper mapper = new ObjectMapper();
-	        String json = mapper.writeValueAsString(forecast);
-	        return Response.ok(json, MediaType.APPLICATION_JSON).build();
+	        if(forecast == null) {
+	        	return Response.status(Response.Status.NOT_FOUND).entity("Sorry, but there are no daily forecasts in our database for the station with that ID.").type(MediaType.TEXT_PLAIN).build();
+	        }
+	        else {
+		        ObjectMapper mapper = new ObjectMapper();
+		        String json = mapper.writeValueAsString(forecast);
+		        return Response.ok(json, MediaType.APPLICATION_JSON).build();
+	        }
 	    }
 
 	@GET
@@ -100,9 +105,14 @@ public class StationResource {
 		Connection conn = establishConnection();
         HourlyForecast forecast = HourlyForecastResource.getForecast(conn,id);
         
-        ObjectMapper mapper = new ObjectMapper();
-        String json = mapper.writeValueAsString(forecast);
-        return Response.ok(json, MediaType.APPLICATION_JSON).build();
+        if(forecast == null) {
+        	return Response.status(Response.Status.NOT_FOUND).entity("Sorry, but there are no hourly forecasts in our database for the station with that ID.").type(MediaType.TEXT_PLAIN).build();
+        }
+        else {
+	        ObjectMapper mapper = new ObjectMapper();
+	        String json = mapper.writeValueAsString(forecast);
+	        return Response.ok(json, MediaType.APPLICATION_JSON).build();
+        }
 	}
 	
 	@GET
@@ -111,6 +121,7 @@ public class StationResource {
 		Connection conn = establishConnection();
 		HistoricalMeasurement measures = HistoricalMeasurementResource.getHistoricalMeasurements(conn, id);
 		
+		if(measures == null) return Response.status(Response.Status.NOT_FOUND).entity("Sorry, but there are no historical measurements in our database for the station with that ID.").type(MediaType.TEXT_PLAIN).build();
 		ObjectMapper mapper = new ObjectMapper();
         String json = mapper.writeValueAsString(measures);
         return Response.ok(json, MediaType.APPLICATION_JSON).build();
@@ -139,7 +150,7 @@ public class StationResource {
 	@Path("{id}")
 	public Response putStation(@PathParam("id") int id, Station update) throws SQLException, JsonProcessingException{
 		Connection conn = establishConnection();
-		List<Map<String,Object>> stationMap = StationDataService.getStation(conn,id);
+		Map<String,Object> stationMap = StationDataService.getStation(conn,id);
 		ObjectMapper mapper = new ObjectMapper();
 		Station currentStation = mapper.convertValue(stationMap.get(0),Station.class);
 		int response = StationDataService.updateStationEntry(conn, id, update);

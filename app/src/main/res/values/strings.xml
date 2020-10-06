@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">WeatherAppAndroidClient</string>
+    <string name="station_id">Enter a station ID</string>
+    <string name="button_send">OK</string>
+</resources>

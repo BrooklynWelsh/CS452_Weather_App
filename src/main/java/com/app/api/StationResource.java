@@ -132,7 +132,7 @@ public class StationResource {
 	public Response getCurrentMeasurements(@PathParam("id") int id) throws SQLException, JsonProcessingException{
 		Connection conn = establishConnection();
 		CurrentMeasurement measures = CurrentMeasurementResource.getCurrentMeasurements(conn, id);
-		
+		if(measures == null) return Response.status(Response.Status.NOT_FOUND).entity("Sorry, but there are no historical measurements in our database for the station with that ID.").type(MediaType.TEXT_PLAIN).build();
 		ObjectMapper mapper = new ObjectMapper();
         String json = mapper.writeValueAsString(measures);
         return Response.ok(json, MediaType.APPLICATION_JSON).build();

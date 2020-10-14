@@ -6,32 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <EditText
-        android:id="@+id/stationID"
-        android:layout_width="155dp"
-        android:layout_height="44dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="20dp"
-        android:ems="10"
-        android:hint="@string/station_id"
-        android:inputType="number"
-        app:layout_constraintEnd_toStartOf="@+id/okbutton"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/okbutton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="16dp"
-        android:text="@string/button_send"
-        app:layout_constraintEnd_toStartOf="@+id/back"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/stationID"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <TextView
         android:id="@+id/info"
         android:layout_width="wrap_content"
@@ -45,15 +19,26 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/back"
-        android:layout_width="96dp"
-        android:layout_height="50dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="16dp"
+        android:id="@+id/hourlyButton"
+        android:layout_width="166dp"
+        android:layout_height="72dp"
+        android:layout_marginStart="16dp"
+        android:text="Hourly Forecast"
+        app:layout_constraintBottom_toBottomOf="@+id/weeklyButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/weeklyButton"
+        app:layout_constraintVertical_bias="0.0"
+        android:onClick="startHourlyForecastActivity"/>
+
+    <Button
+        android:id="@+id/weeklyButton"
+        android:layout_width="167dp"
+        android:layout_height="70dp"
+        android:layout_marginTop="12dp"
         android:layout_marginEnd="16dp"
-        android:text="Go Back"
+        android:text="Weekly Forecast"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/okbutton"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:onClick="startWeeklyForecastActivity"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

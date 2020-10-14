@@ -110,8 +110,7 @@ public class NWSForecast {
 					+ "\n windDirection: " + windDirection + "\n shortForecast: " + shortForecast;
 		}
 		else {
-		forecast=  "\nForecast for " + name + "\n startTime: " + startTime + "\n endTime: "
-				+ endTime + "\n temperature: " + temperature + "\n temperatureUnit: "
+		forecast=  "\nForecast for " + name + "\n temperature: " + temperature + "\n temperatureUnit: "
 				+ temperatureUnit + "\n temperatureTrend: " + temperatureTrend + "\n windSpeed: " + windSpeed
 				+ "\n windDirection: " + windDirection + "\n shortForecast: " + shortForecast
 				+ "\n detailedForecast: " + detailedForecast;

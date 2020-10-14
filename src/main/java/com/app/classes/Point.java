@@ -10,13 +10,15 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class Point {
 	URL forecast;
 	URL forecastHourly;
+	URL stationsURL;
 	
 	public Point() {
 	}
 	
-	public Point(URL forecastURL, URL forecastHourlyURL) {
+	public Point(URL forecastURL, URL forecastHourlyURL, URL stationsURL) {
 		this.forecast = forecastURL;
 		this.forecastHourly = forecastHourlyURL;
+		this.stationsURL = stationsURL;
 	}
 	
 	@Override
@@ -30,6 +32,14 @@ public class Point {
 	public void setForecast(URL forecast) {
 		this.forecast = forecast;
 	}
+	public URL getStationsURL() {
+		return stationsURL;
+	}
+
+	public void setStationsURL(URL stationsURL) {
+		this.stationsURL = stationsURL;
+	}
+
 	public URL getForecastHourly() {
 		return forecastHourly;
 	}

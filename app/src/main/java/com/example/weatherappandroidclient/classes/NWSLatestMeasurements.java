@@ -15,15 +15,43 @@ public class NWSLatestMeasurements {
     int visibility;
     // TODO: include variables for precipitation last hour, 3 hours, 6 hours
     double relativeHumidity;
+    double heatIndex;
+    double windChill;
 
-    @JsonProperty("textDescription")
-    public void setTextDescription(String textDescription) {
-        this.textDescription = textDescription;
-    }
+    // GETTERS
 
     @JsonProperty("textDescription")
     public String getTextDescription() {
         return textDescription;
+    }
+
+    public double getTemperature() {
+        return temperature;
+    }
+
+    public double getWindSpeed() {
+        return windSpeed;
+    }
+
+    public int getSeaLevelPressure() {
+        return seaLevelPressure;
+    }
+
+    public int getVisibility() {
+        return visibility;
+    }
+
+    public double getRelativeHumidity() {
+        return relativeHumidity;
+    }
+
+    public double getHeatIndex() { return heatIndex; }
+
+    public double getWindChill() { return windChill; }
+
+    @JsonProperty("textDescription")
+    public void setTextDescription(String textDescription) {
+        this.textDescription = textDescription;
     }
 
     @JsonProperty("temperature")
@@ -39,16 +67,27 @@ public class NWSLatestMeasurements {
     }
 
     @JsonProperty("seaLevelPressure")
-    private void unpackPressure(Map<String, Object> pressure){seaLevelPressure = (int)pressure.get("value");}
+    private void unpackPressure(Map<String, Object> pressure){if(pressure.get("value") != null) this.seaLevelPressure = (int)pressure.get("value");}
 
     @JsonProperty("visibility")
     private void unpackVisibility(Map<String, Object> visibility){this.visibility = (int)visibility.get("value");}
 
     @JsonProperty("relativeHumidity")
     private void unpackHumidity(Map<String, Object> humidity){
-        if(humidity.get("value") != null && humidity.get("value").getClass() == Integer.class) relativeHumidity = (int) humidity.get("value");
-        else if(humidity.get("value") != null && humidity.get("value").getClass() == Double.class) relativeHumidity = (double) humidity.get("value");
+        if(humidity.get("value") != null && humidity.get("value").getClass() == Integer.class) this.relativeHumidity = (int) humidity.get("value");
+        else if(humidity.get("value") != null && humidity.get("value").getClass() == Double.class) this.relativeHumidity = (double) humidity.get("value");
+    }
 
+    @JsonProperty("windChill")
+    private void unpackWindChill(Map<String, Object> windChill){
+        if(windChill.get("value") != null) this.windChill = (double) windChill.get("value");
+        else this.windChill = 0;
+    }
+
+    @JsonProperty("heatIndex")
+    private void unpackHeatIndex(Map<String, Object> heatIndex){
+        if(heatIndex.get("value") != null) this.heatIndex = (double) heatIndex.get("value");
+        else this.heatIndex = this.temperature - this.windChill;
     }
 
     @Override

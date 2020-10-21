@@ -1,5 +1,6 @@
 package com.example.weatherappandroidclient;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
@@ -17,7 +18,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class HourlyForecastActivity extends AppCompatActivity {
+public class HourlyForecastActivity extends Activity {
 
     public static String pointURL = CurrentWeatherActivity.pointURL;    // Get pointURL from previous activity
     private TextView forecastText;

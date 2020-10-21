@@ -87,8 +87,6 @@ public class VolleyServerRequest {
                             json = mapper.readTree(response);
                         } catch (JsonProcessingException e) {
                             e.printStackTrace();
-                        } catch (IOException e) {
-                            e.printStackTrace();
                         }
                         Log.d("Response", response);
                         try {

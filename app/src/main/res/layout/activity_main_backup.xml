@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".CurrentWeatherActivity">
+
+    <ImageView android:id="@+id/background"
+        android:scaleType = "centerCrop"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+    </ImageView>
+
+    <TextView
+        android:id="@+id/info"
+        android:layout_width="wrap_content"
+        android:layout_height="416dp"
+        android:layout_marginStart="150dp"
+        android:layout_marginEnd="150dp"
+        android:background="#66000000"
+        android:paddingLeft="30dp"
+        android:paddingRight="30dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.476"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/hourlyButton"
+        android:layout_width="166dp"
+        android:layout_height="72dp"
+        android:layout_marginStart="16dp"
+        android:text="Hourly Forecast"
+        app:layout_constraintBottom_toBottomOf="@+id/weeklyButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/weeklyButton"
+        app:layout_constraintVertical_bias="0.0"
+        android:onClick="startHourlyForecastActivity"/>
+
+    <Button
+        android:id="@+id/weeklyButton"
+        android:layout_width="167dp"
+        android:layout_height="70dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="16dp"
+        android:text="Weekly Forecast"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:onClick="startWeeklyForecastActivity"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

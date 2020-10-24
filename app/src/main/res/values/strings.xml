@@ -17,4 +17,5 @@
 
     <string name="temp">%1$s°%2$s</string>
     <string name="feelsLike">Feels like %1$s°%2$s</string>
+    <string name="range_chart">Range Chart</string>
 </resources>

@@ -1,5 +1,7 @@
 package com.example.weatherappandroidclient;
 
+
+import com.example.weatherappandroidclient.classes.HelperFunctions;
 import com.example.weatherappandroidclient.classes.NWSPoint;
 
 import android.Manifest;
@@ -14,7 +16,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
-import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
@@ -25,22 +26,19 @@ import android.text.style.SuperscriptSpan;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import androidx.annotation.ColorRes;
 import androidx.annotation.NonNull;
-import androidx.constraintlayout.solver.state.State;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
-import androidx.core.view.ViewCompat;
 
 import com.android.volley.RequestQueue;
 
@@ -50,16 +48,6 @@ import com.example.weatherappandroidclient.classes.OnEventListener;
 import com.example.weatherappandroidclient.classes.VolleyServerRequest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.mikephil.charting.charts.CandleStickChart;
-import com.github.mikephil.charting.components.AxisBase;
-import com.github.mikephil.charting.components.XAxis;
-import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.CandleData;
-import com.github.mikephil.charting.data.CandleDataSet;
-import com.github.mikephil.charting.data.CandleEntry;
-import com.github.mikephil.charting.formatter.IAxisValueFormatter;
-import com.github.mikephil.charting.formatter.ValueFormatter;
-import com.github.mikephil.charting.model.GradientColor;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationAvailability;
@@ -74,24 +62,25 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.squareup.picasso.Picasso;
 
-import org.w3c.dom.Text;
+import org.achartengine.ChartFactory;
+import org.achartengine.GraphicalView;
+import org.achartengine.chart.BarChart;
+import org.achartengine.model.RangeCategorySeries;
+import org.achartengine.model.XYMultipleSeriesDataset;
+import org.achartengine.renderer.XYMultipleSeriesRenderer;
+import org.achartengine.renderer.XYSeriesRenderer;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.text.DecimalFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.Temporal;
-import java.time.temporal.TemporalAdjuster;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
 
 public class CurrentWeatherActivity extends Activity {
 
@@ -110,7 +99,7 @@ public class CurrentWeatherActivity extends Activity {
     private ConstraintLayout hourlyScrollLayout;
 
     // Classes
-    NWSPoint pointObject = new NWSPoint();
+    public static NWSPoint pointObject = new NWSPoint();
 
     private boolean isDaytime;
     private static final String TAG = "LocationActivity";
@@ -406,7 +395,7 @@ public class CurrentWeatherActivity extends Activity {
                         if (ChronoUnit.DAYS.between(currentDate, tempTime) >= 2) pastLimit = true;
                             // If date is not more than a day out, get probabilityOfPrecipitation
                         else {
-                            int temperature = (int)Math.round(thisTempNode.path("value").asDouble());
+                            int temperature = (int) Math.round(thisTempNode.path("value").asDouble());
                             Iterator<JsonNode> precipitationIterator = propertiesNode.path("probabilityOfPrecipitation").path("values").elements();
                             JsonNode previousNode = null;
                             int rainProb = -1;
@@ -429,7 +418,7 @@ public class CurrentWeatherActivity extends Activity {
                             while (skyCoverIterator.hasNext()) {
                                 JsonNode skyNode = skyCoverIterator.next();
                                 indexOfDuration = skyNode.path("validTime").textValue().indexOf("/");
-                                if (ChronoUnit.HOURS.between(tempTime, OffsetDateTime.parse(skyNode.path("validTime").textValue().substring(0,indexOfDuration))) > 0) {
+                                if (ChronoUnit.HOURS.between(tempTime, OffsetDateTime.parse(skyNode.path("validTime").textValue().substring(0, indexOfDuration))) > 0) {
                                     // If we've went past the time for the temp node we are trying to match, just use the last known node
                                     if (previousNode == null) skyCover = 0;
                                     else skyCover = previousNode.path("value").intValue();
@@ -453,7 +442,7 @@ public class CurrentWeatherActivity extends Activity {
                                 constraints.clone(hourlyScrollLayout);
 
                                 timeStamp.setText(fmt.format(tempTime));
-                                constraints.connect(timeStamp.getId(), ConstraintSet.LEFT, findViewById(R.id.hourlyScrollView).getId(), ConstraintSet.LEFT, dpToPx(2,CurrentWeatherActivity.this));
+                                constraints.connect(timeStamp.getId(), ConstraintSet.LEFT, findViewById(R.id.hourlyScrollView).getId(), ConstraintSet.LEFT, dpToPx(2, CurrentWeatherActivity.this));
                                 constraints.connect(timeStamp.getId(), ConstraintSet.TOP, findViewById(R.id.hourlyScrollView).getId(), ConstraintSet.TOP, dpToPx(2, CurrentWeatherActivity.this));
                                 lastTimestampView = timeStamp;
 
@@ -464,7 +453,7 @@ public class CurrentWeatherActivity extends Activity {
                                 skyCoverIcon.getLayoutParams().width = dpToPx(70, CurrentWeatherActivity.this);
                                 constraints.clone(hourlyScrollLayout);
                                 setCloudIcon(skyCoverIcon, skyCover, tempTime);
-                                constraints.connect(skyCoverIcon.getId(), ConstraintSet.LEFT, findViewById(R.id.hourlyScrollView).getId(), ConstraintSet.LEFT, dpToPx(2,CurrentWeatherActivity.this));
+                                constraints.connect(skyCoverIcon.getId(), ConstraintSet.LEFT, findViewById(R.id.hourlyScrollView).getId(), ConstraintSet.LEFT, dpToPx(2, CurrentWeatherActivity.this));
                                 constraints.connect(skyCoverIcon.getId(), ConstraintSet.TOP, timeStamp.getId(), ConstraintSet.BOTTOM, dpToPx(1, CurrentWeatherActivity.this));
                                 constraints.applyTo(hourlyScrollLayout);
                                 lastCloudView = skyCoverIcon;
@@ -479,8 +468,7 @@ public class CurrentWeatherActivity extends Activity {
                                 constraints.connect(precipitationChanceView.getId(), ConstraintSet.TOP, skyCoverIcon.getId(), ConstraintSet.BOTTOM, dpToPx(1, CurrentWeatherActivity.this));
                                 lastRainView = precipitationChanceView;
                                 constraints.applyTo(hourlyScrollLayout);
-                            }
-                            else {
+                            } else {
                                 // Else, we need to constrain our next views relative to the last view (to the right of last view, as opposed to constraining to the beginning of the scrollView)
                                 ConstraintSet constraints = new ConstraintSet();
 
@@ -513,81 +501,66 @@ public class CurrentWeatherActivity extends Activity {
                                 lastRainView = precipitationChanceView;
                                 constraints.applyTo(hourlyScrollLayout);
                             }
+
                         }
                     }
 
                     // Now begin working on the daily forecast view
                     int tempSize = propertiesNode.path("maxTemperature").path("values").size();
                     Iterator<JsonNode> minTempIterator = propertiesNode.path("minTemperature").path("values").elements();
-                    CandleStickChart chart = findViewById(R.id.candle_stick_chart);
-                    LinearLayout chartHolder = findViewById(R.id.chart_holder);
 
-                    XAxis xAxis = chart.getXAxis();
-                    xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-                    xAxis.setDrawGridLines(false);
-                    xAxis.setTextColor(Color.WHITE);
-
-                    YAxis leftAxis = chart.getAxisLeft();
-                    leftAxis.setEnabled(false);
-                    leftAxis.setTextColor(Color.WHITE);
-                    leftAxis.setDrawAxisLine(false);
-                    leftAxis.setDrawGridLinesBehindData(false);
-                    leftAxis.setDrawLimitLinesBehindData(false);
-
-                    // Dummy data
-                    ArrayList<CandleEntry> yValsCandleStick= new ArrayList<CandleEntry>();
-
+                    XYMultipleSeriesRenderer mRenderer = new XYMultipleSeriesRenderer();
+                    RangeCategorySeries series =
+                            new RangeCategorySeries("High low temperature");
+                    int highestTemp = 0;
+                    int lowestTemp = 100;
                     for(int i = 0; i < tempSize; i++){
                         // For each max temp, get the matching min temp, then adjust the view accordingly
-                        int maxTemp = (int)Math.round(propertiesNode.path("maxTemperature").path("values").path(i).path("value").asDouble());
-                        int minTemp = (int)Math.round(propertiesNode.path("minTemperature").path("values").path(i).path("value").asDouble());
-
-                        yValsCandleStick.add(new CandleEntry(i, maxTemp, minTemp, maxTemp, minTemp));
-
+                        int indexOfDuration = propertiesNode.path("maxTemperature").path("values").path(i).path("validTime").textValue().indexOf("/");
+                        OffsetDateTime maxTempTimestamp = OffsetDateTime.parse(propertiesNode.path("maxTemperature").path("values").path(i).path("validTime").textValue().substring(0, indexOfDuration));
+                        DayOfWeek day = maxTempTimestamp.getDayOfWeek();
+                        int maxTemp = HelperFunctions.convertToFahrenheit(Math.round(propertiesNode.path("maxTemperature").path("values").path(i).path("value").asDouble()));
+                        int minTemp = HelperFunctions.convertToFahrenheit(Math.round(propertiesNode.path("minTemperature").path("values").path(i).path("value").asDouble()));
+                        if(maxTemp > highestTemp) highestTemp = maxTemp;
+                        if(minTemp < lowestTemp) lowestTemp = minTemp;
+                        series.add(maxTemp,minTemp);
+                        mRenderer.addXTextLabel(i, day.toString());
                     }
 
-                    CandleDataSet set1 = new CandleDataSet(yValsCandleStick, "DataSet 1");
-                    set1.setDrawIcons(false);
-                    set1.setAxisDependency(YAxis.AxisDependency.LEFT);
-                    set1.setColor(Color.rgb(00, 00, 00));
-                    set1.setShadowColor(Color.DKGRAY);
-                    set1.setShadowWidth(0.7f);
-                    set1.setDecreasingColor(Color.WHITE);
-                    set1.setDecreasingPaintStyle( Paint.Style.FILL);
-                    set1.setIncreasingColor(Color.rgb(122, 242, 84));
-                    set1.setIncreasingPaintStyle(Paint.Style.STROKE);
-                    set1.setNeutralColor(Color.WHITE);
-                    set1.setBarSpace(dpToPx(10, getApplicationContext()));
+                    XYMultipleSeriesDataset dataset = new XYMultipleSeriesDataset();
 
+                    dataset.addSeries(series.toXYSeries());
 
-                    CandleData data = new CandleData(set1);
+                    XYSeriesRenderer renderer = new XYSeriesRenderer();
+                    renderer.setDisplayChartValues(true);
+                    mRenderer.addSeriesRenderer(renderer);
+                    mRenderer.setPanEnabled(true, false);
+                    double[] panLimits = {0.5, 8.5, 0,0};
+                    mRenderer.setPanLimits(panLimits);
+                    mRenderer.setYAxisMax(highestTemp);
+                    mRenderer.setYAxisMin(lowestTemp);
+                    mRenderer.setBarWidth(HelperFunctions.dpToPx(20, getApplicationContext()));
+                    mRenderer.setInScroll(true);
+                    mRenderer.setLabelsTextSize(dpToPx(7, getApplicationContext()));
+                    renderer.setChartValuesTextSize(12);
+                    renderer.setChartValuesFormat(new DecimalFormat("#"));
+                    renderer.setColor(Color.GREEN);
+                    GraphicalView chartView = ChartFactory.getRangeBarChartView(
+                            getApplicationContext(), dataset,
+                            mRenderer, BarChart.Type.DEFAULT);
 
-                    final ArrayList<String> xLabel = new ArrayList<>();
-                    LocalDateTime label = LocalDateTime.now();
-                    for(int i = 0; i < yValsCandleStick.size(); i++){
-                        xLabel.add(label.getDayOfWeek().toString());
-                        label = label.plusDays(1);
+                    ConstraintLayout view = findViewById(R.id.graphView);
+                    chartView.setMinimumHeight(dpToPx(200, getApplicationContext()));
+                    chartView.setMinimumWidth(dpToPx(200, getApplicationContext()));
+                    view.addView(chartView);
+                    view.removeView(findViewById(R.id.progress_bar));
+                }
+
+                    @Override
+                    public void onFailure(Exception e) {
+
                     }
-
-                    chart.setData(data);
-                    chart.getXAxis().setDrawGridLines(false);
-                    chart.getXAxis().setLabelCount(yValsCandleStick.size());
-                    chart.getAxisLeft().setAxisMinValue(set1.getYMin());
-                    chart.getAxisLeft().setAxisMaxValue(set1.getYMax());
-                    chart.getAxisLeft().setStartAtZero(false);
-                    chart.getLegend().setEnabled(false);
-                    chart.getAxisLeft().setDrawGridLines(false);
-                    chart.getAxisRight().setDrawGridLines(false);
-                    chart.getData().setHighlightEnabled(false);
-                    chart.invalidate();
-
-                }
-
-                @Override
-                public void onFailure(Exception e) {
-
-                }
-            }, url);
+                }, url);
         }
 
         private void setCloudIcon(ImageView cloudImageView, int cloudCover, OffsetDateTime time) {
@@ -622,13 +595,19 @@ public class CurrentWeatherActivity extends Activity {
             return Math.round((float) dp * density);
         }
 
+        private int convertToFahrenheit(double celsius){
+            int fahrenheit = (int)(celsius / 5) * 9 + 32;
+            return fahrenheit;
+        }
+
+
     private void startHourlyForecastActivity(View view){
         Intent intent = new Intent(this, HourlyForecastActivity.class);
         startActivity(intent);
     }
 
     private void startWeeklyForecastActivity(View view){
-        Intent intent = new Intent(this, WeeklyForecastActivity.class);
+        Intent intent = new Intent(this, DailyForecastActivity.class);
         startActivity(intent);
     }
 

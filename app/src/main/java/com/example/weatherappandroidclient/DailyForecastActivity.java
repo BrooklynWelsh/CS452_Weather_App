@@ -1,13 +1,17 @@
 package com.example.weatherappandroidclient;
 
 import android.app.Activity;
+import android.content.Context;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
-import android.util.Log;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.solver.widgets.Helper;
 
+import com.example.weatherappandroidclient.classes.HelperFunctions;
 import com.example.weatherappandroidclient.classes.NWSForecast;
 import com.example.weatherappandroidclient.classes.OnEventListener;
 import com.example.weatherappandroidclient.classes.VolleyServerRequest;
@@ -15,12 +19,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class WeeklyForecastActivity extends Activity {
+public class DailyForecastActivity extends Activity {
 
-    public static String pointURL = CurrentWeatherActivity.pointURL;    // Get pointURL from previous activity
+    public static String pointURL = CurrentWeatherActivity.pointObject.getGridPointURL();    // Get pointURL from previous activity
     private TextView forecastText;
     public static String forecastURL;
     ObjectMapper mapper = new ObjectMapper();
@@ -29,27 +34,8 @@ public class WeeklyForecastActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_weekly_forecast);
-        forecastText = findViewById(R.id.weeklyForecast);
-        forecastText.setMovementMethod(new ScrollingMovementMethod());
-        getForecastURL(pointURL);
-    }
-
-    public void getForecastURL(String url){
-        VolleyServerRequest stringRequest = new VolleyServerRequest(getApplicationContext(), new OnEventListener() {
-            @Override
-            public void onSuccess(Object object) throws IOException {
-                JsonNode response = (JsonNode)object;
-                JsonNode forecastNode = response.path("properties").path("forecast");
-                forecastURL = forecastNode.textValue();
-                getNWSForecast(forecastURL);
-            }
-
-            @Override
-            public void onFailure(Exception e) {
-
-            }
-        }, url);
+        setContentView(R.layout.activity_daily_forecast);
+        getNWSForecast(pointURL);
     }
 
     public void getNWSForecast(String url){
@@ -77,4 +63,26 @@ public class WeeklyForecastActivity extends Activity {
             }
         }, url);
     }
+
+
+    public void getHourlyForecastJSON(String url) {
+        VolleyServerRequest stringRequest = new VolleyServerRequest(getApplicationContext(), new OnEventListener() {
+            @Override
+            public void onSuccess(Object object) throws IOException {
+
+                JsonNode propertiesNode = ((JsonNode) object).path("properties");
+        // Now begin working on the daily forecast view
+        int tempSize = propertiesNode.path("maxTemperature").path("values").size();
+        Iterator<JsonNode> minTempIterator = propertiesNode.path("minTemperature").path("values").elements();
+
+            }
+
+    @Override
+    public void onFailure(Exception e) {
+
+    }
+}, url);
+        }
+
+
 }

@@ -461,7 +461,7 @@ public class CurrentWeatherActivity extends Activity {
                                 // Finally, the  precipitation probability TextView
                                 hourlyScrollLayout.addView(precipitationChanceView);
                                 constraints.clone(hourlyScrollLayout);
-                                precipitationChanceView.setText(String.valueOf(rainProb));
+                                precipitationChanceView.setText(getString(R.string.rain_chance,String.valueOf(rainProb)));
                                 precipitationChanceView.setWidth(skyCoverIcon.getLayoutParams().width);
                                 precipitationChanceView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                                 constraints.connect(precipitationChanceView.getId(), ConstraintSet.LEFT, skyCoverIcon.getId(), ConstraintSet.LEFT, 0);
@@ -493,7 +493,7 @@ public class CurrentWeatherActivity extends Activity {
 
                                 hourlyScrollLayout.addView(precipitationChanceView);
                                 constraints.clone(hourlyScrollLayout);
-                                precipitationChanceView.setText(String.valueOf(rainProb));
+                                precipitationChanceView.setText(getString(R.string.rain_chance,String.valueOf(rainProb)));
                                 precipitationChanceView.setWidth(skyCoverIcon.getLayoutParams().width);
                                 precipitationChanceView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                                 constraints.connect(precipitationChanceView.getId(), ConstraintSet.LEFT, skyCoverIcon.getId(), ConstraintSet.LEFT, 0);
@@ -532,19 +532,26 @@ public class CurrentWeatherActivity extends Activity {
                     dataset.addSeries(series.toXYSeries());
 
                     XYSeriesRenderer renderer = new XYSeriesRenderer();
-                    renderer.setDisplayChartValues(true);
                     mRenderer.addSeriesRenderer(renderer);
                     mRenderer.setPanEnabled(true, false);
-                    double[] panLimits = {0.5, 8.5, 0,0};
+                    double[] panLimits = {0, 7.9, 0,0};
                     mRenderer.setPanLimits(panLimits);
-                    mRenderer.setYAxisMax(highestTemp);
-                    mRenderer.setYAxisMin(lowestTemp);
-                    mRenderer.setBarWidth(HelperFunctions.dpToPx(20, getApplicationContext()));
-                    mRenderer.setInScroll(true);
-                    mRenderer.setLabelsTextSize(dpToPx(7, getApplicationContext()));
+                    mRenderer.setBarWidth(HelperFunctions.dpToPx(15, getApplicationContext()));
+             //       mRenderer.setInScroll(true);
+                    mRenderer.setLabelsTextSize(dpToPx(8, getApplicationContext()));
                     renderer.setChartValuesTextSize(12);
+                    mRenderer.setAntialiasing(true);
+                    mRenderer.setTextTypeface(ResourcesCompat.getFont(getApplicationContext(),R.font.opensans));
+                    renderer.setShowLegendItem(false);
+                    mRenderer.setShowLegend(false);
                     renderer.setChartValuesFormat(new DecimalFormat("#"));
-                    renderer.setColor(Color.GREEN);
+                    renderer.setColor(Color.WHITE);
+                    renderer.setChartValuesTextSize(dpToPx(9, getApplicationContext()));
+                    mRenderer.setXLabelsColor(Color.WHITE);
+                    mRenderer.setShowGridY(false);
+                    mRenderer.setShowGridY(false);
+                    mRenderer.setChartTitle("Weekly High-Low Temperatures");
+                    mRenderer.setChartTitleTextSize(dpToPx(14, getApplicationContext()));
                     GraphicalView chartView = ChartFactory.getRangeBarChartView(
                             getApplicationContext(), dataset,
                             mRenderer, BarChart.Type.DEFAULT);
@@ -554,6 +561,10 @@ public class CurrentWeatherActivity extends Activity {
                     chartView.setMinimumWidth(dpToPx(200, getApplicationContext()));
                     view.addView(chartView);
                     view.removeView(findViewById(R.id.progress_bar));
+                    renderer.setGradientEnabled(true);
+                    renderer.setGradientStart(lowestTemp + 10, Color.rgb(52,52,235));
+                    renderer.setGradientStop(highestTemp + 10, Color.rgb(255,20,20));
+                    renderer.setDisplayChartValues(true);
                 }
 
                     @Override

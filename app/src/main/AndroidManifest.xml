@@ -15,7 +15,8 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Wallpaper.NoTitleBar">
         <activity android:name=".HourlyForecastActivity"></activity>
-        <activity android:name=".WeeklyForecastActivity"></activity>
+        <activity android:name=".DailyForecastActivity"></activity>
+        <activity android:name=".classes.RangeGraphActivity"></activity>
         <activity android:name=".CurrentWeatherActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

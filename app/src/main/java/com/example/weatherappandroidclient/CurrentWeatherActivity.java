@@ -113,8 +113,8 @@ public class CurrentWeatherActivity extends Activity {
     String latestMeasurementsURL;
     NWSLatestMeasurements measurements;
     static public ImageView background;
-    int screenHeight;
-    int screenWidth;
+    public static int screenHeight;
+    public static int screenWidth;
     Point size = new Point();
     WindowManager window;
     ConstraintLayout layout;
@@ -594,8 +594,8 @@ public class CurrentWeatherActivity extends Activity {
                     view.addView(chartView);
                     view.removeView(findViewById(R.id.progress_bar));
                     renderer.setGradientEnabled(true);
-                    renderer.setGradientStart(lowestTemp + 10, Color.rgb(52,52,235));
-                    renderer.setGradientStop(highestTemp + 10, Color.rgb(255,20,20));
+                    renderer.setGradientStart(lowestTemp , Color.rgb(0,57,235));
+                    renderer.setGradientStop(highestTemp + 5, Color.rgb(242,96,1));
                     renderer.setDisplayChartValues(true);
 
                     // Create button to show more detailed daily forecast

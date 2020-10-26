@@ -5,11 +5,16 @@ import android.app.usage.ConfigurationStats;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -25,6 +30,7 @@ import com.example.weatherappandroidclient.classes.OnEventListener;
 import com.example.weatherappandroidclient.classes.VolleyServerRequest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.squareup.picasso.Picasso;
 
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
@@ -56,11 +62,30 @@ public class DailyForecastActivity extends Activity {
     JsonNode detailedForecastNode = CurrentWeatherActivity.detailedForecastNode;
     public final int HOURS_IN_DAY = 24;
     public View lastCardView =  null;
+    public String tempUnit = "F";
+    public String speedUnit = "kmh";
+
+    int screenHeight = CurrentWeatherActivity.screenHeight;
+    int screenWidth = CurrentWeatherActivity.screenWidth;
+    WindowManager window;
+    Point size = new Point();
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_daily_forecast);
+        window = getWindowManager();
+        // Get screen width and height (backwards compatible if else statement)
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)    {
+            window.getDefaultDisplay().getSize(size);
+            screenWidth = size.x;
+            screenHeight = size.y;
+        }else{
+            Display d = window.getDefaultDisplay();
+            screenWidth = d.getWidth();
+            screenHeight = d.getHeight();
+        }
+        Picasso.get().load(R.drawable.weather_app_background).resize(screenWidth, screenHeight).onlyScaleDown().into(this.<ImageView>findViewById(R.id.background));
         getDailyForecastJSON(pointURL);
     }
 
@@ -118,14 +143,19 @@ public class DailyForecastActivity extends Activity {
 
                     // Wind gust
                     Iterator<JsonNode> windGustIterator =  propertiesNode.path("windGust").path("values").elements();
-                    int windGus = (int) HelperFunctions.getDailyAverage(windGustIterator, maxTempTimestamp);
+                    int windGust = (int) HelperFunctions.getDailyAverage(windGustIterator, maxTempTimestamp);
 
+                    // Get highest and lowest apparent temperature
+                    Iterator<JsonNode> apparentTemperatureIterator = propertiesNode.path("apparentTemperature").path("values").elements();
+                    int lowestApparentTemp = HelperFunctions.convertToFahrenheit((int)HelperFunctions.getMin(apparentTemperatureIterator, maxTempTimestamp));
+                    apparentTemperatureIterator = propertiesNode.path("apparentTemperature").path("values").elements(); // Have to reset the iterator
+                    int highestApparentTemp = HelperFunctions.convertToFahrenheit((int)HelperFunctions.getMax(apparentTemperatureIterator, maxTempTimestamp));
 
                     // TODO: Also check for snowfall amount, ice accumulation
 
                     // TODO: check the "weather" node for short blurbs of weather events (scattered rain, chance of rain, etc.)
 
-                    // TODO: Create xml file for the cards for each day, then inflate them, instead of doing it all programmatically
+                    // TODO: Add code to decide on a weather icon for each day
 
                     // Create a card view to contain each day
                     LayoutInflater inflater = getLayoutInflater();
@@ -140,6 +170,46 @@ public class DailyForecastActivity extends Activity {
                         layout.addView(thisCard);
                         lastCardView = thisCard;
 
+                        // Begin editing the views for this card
+                        TextView dateView = thisCard.findViewById(R.id.dateView);
+                        dateView.setText(formattedDate);
+
+                        TextView lowView = thisCard.findViewById(R.id.lowTempView);
+                        lowView.setText(String.valueOf(minTemp));
+
+                        TextView highView = thisCard.findViewById(R.id.highTempView);
+                        highView.setText(String.valueOf(maxTemp));
+
+                        TextView rainProbabilityView = thisCard.findViewById(R.id.rainProbabilityView);
+                        rainProbabilityView.setText(getString(R.string.rain_probability_daily, String.valueOf(precipitationProbability)));
+
+                        TextView rainQuantityView = thisCard.findViewById(R.id.precipitationQuantityView);
+                        rainQuantityView.setText(getString(R.string.rain_quantity_daily, Double.toString(precipitationQuantity)));
+
+                        TextView cloudCoverView = thisCard.findViewById(R.id.cloudCoverView);
+                        cloudCoverView.setText(getString(R.string.cloud_cover_daily, String.valueOf(skyCover)));
+
+                        TextView highFeelsLikeView = thisCard.findViewById(R.id.highFeelsLikeView);
+                        highFeelsLikeView.setText(getString(R.string.feels_like_high_daily,String.valueOf(highestApparentTemp), tempUnit));
+
+                        TextView lowFeelsLikeView = thisCard.findViewById(R.id.lowFeelsLikeView);
+                        lowFeelsLikeView.setText(getString(R.string.feels_like_low_daily,String.valueOf(lowestApparentTemp), tempUnit));
+
+                        TextView humidityView = thisCard.findViewById(R.id.humidityView);
+                        humidityView.setText(getString(R.string.humidity_daily, String.valueOf(humidityAverage)));
+
+                        TextView windSpeedView = thisCard.findViewById(R.id.windSpeedView);
+                        windSpeedView.setText(getString(R.string.wind_speed_daily, Double.toString(windSpeed), speedUnit));
+
+                        TextView windChillView = thisCard.findViewById(R.id.windChillView);
+                        windChillView.setText(getString(R.string.wind_chill_daily, String.valueOf((int)windChill), tempUnit));
+
+                        TextView windGustView = thisCard.findViewById(R.id.windGustView);
+                        windGustView.setText(getString(R.string.wind_gust_daily, Double.toString(windGust), speedUnit));
+
+                        TextView dewPointView = thisCard.findViewById(R.id.dewPointView);
+                        dewPointView.setText(getString(R.string.dew_point_daily, String.valueOf((int)dewPoint), tempUnit));
+
                     }
                     else{
                         // Else we need to attach this card to the bottom of the last card
@@ -148,7 +218,46 @@ public class DailyForecastActivity extends Activity {
                         layout.addView(thisCard);
                         constraints.clone(layout);
 
-                       // thisCard.setTranslationY(300);
+                        // Begin editing the views for this card
+                        TextView dateView = thisCard.findViewById(R.id.dateView);
+                        dateView.setText(formattedDate);
+
+                        TextView lowView = thisCard.findViewById(R.id.lowTempView);
+                        lowView.setText(String.valueOf(minTemp));
+
+                        TextView highView = thisCard.findViewById(R.id.highTempView);
+                        highView.setText(String.valueOf(maxTemp));
+
+                        TextView rainProbabilityView = thisCard.findViewById(R.id.rainProbabilityView);
+                        rainProbabilityView.setText(getString(R.string.rain_probability_daily, String.valueOf(precipitationProbability)));
+
+                        TextView rainQuantityView = thisCard.findViewById(R.id.precipitationQuantityView);
+                        rainQuantityView.setText(getString(R.string.rain_quantity_daily, Double.toString(precipitationQuantity)));
+
+                        TextView cloudCoverView = thisCard.findViewById(R.id.cloudCoverView);
+                        cloudCoverView.setText(getString(R.string.cloud_cover_daily, String.valueOf(skyCover)));
+
+                        TextView highFeelsLikeView = thisCard.findViewById(R.id.highFeelsLikeView);
+                        highFeelsLikeView.setText(getString(R.string.feels_like_high_daily,String.valueOf(highestApparentTemp), tempUnit));
+
+                        TextView lowFeelsLikeView = thisCard.findViewById(R.id.lowFeelsLikeView);
+                        lowFeelsLikeView.setText(getString(R.string.feels_like_low_daily,String.valueOf(lowestApparentTemp), tempUnit));
+
+                        TextView humidityView = thisCard.findViewById(R.id.humidityView);
+                        humidityView.setText(getString(R.string.humidity_daily, String.valueOf(humidityAverage)));
+
+                        TextView windSpeedView = thisCard.findViewById(R.id.windSpeedView);
+                        windSpeedView.setText(getString(R.string.wind_speed_daily, Double.toString(windSpeed), speedUnit));
+
+                        TextView windChillView = thisCard.findViewById(R.id.windChillView);
+                        windChillView.setText(getString(R.string.wind_chill_daily, String.valueOf((int)windChill), tempUnit));
+
+                        TextView windGustView = thisCard.findViewById(R.id.windGustView);
+                        windGustView.setText(getString(R.string.wind_gust_daily, Double.toString(windGust), speedUnit));
+
+                        TextView dewPointView = thisCard.findViewById(R.id.dewPointView);
+                        dewPointView.setText(getString(R.string.dew_point_daily, String.valueOf((int)dewPoint), tempUnit));
+
                         constraints.connect(thisCard.getId(), ConstraintSet.LEFT, layout.getId(), ConstraintSet.LEFT, HelperFunctions.dpToPx(2, DailyForecastActivity.this));
                         constraints.connect(thisCard.getId(), ConstraintSet.TOP, lastCardView.getId(), ConstraintSet.BOTTOM, HelperFunctions.dpToPx(2, DailyForecastActivity.this));
                         constraints.applyTo(layout);

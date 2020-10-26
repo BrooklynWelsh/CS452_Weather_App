@@ -19,4 +19,15 @@
     <string name="feelsLike">Feels like %1$s°%2$s</string>
     <string name="rain_chance">%1s%%</string>
     <string name="daily_forecast_button"><u>Detailed Daily Forecast</u></string>
+
+    <string name="rain_probability_daily">Rain Probability: %1$s%%</string>
+    <string name="rain_quantity_daily">Rain Quantity: %1$smm</string>
+    <string name="cloud_cover_daily">Cloud Cover: %1$s%%</string>
+    <string name="feels_like_high_daily">Feels Like (High): %1$s°%2$s</string>
+    <string name="feels_like_low_daily">Feels Like (Low): %1$s°%2$s</string>
+    <string name="humidity_daily">Humidity: %1$s%%</string>
+    <string name="wind_speed_daily">Wind Speed: %1$s %2$s</string>
+    <string name="wind_chill_daily">Wind Chill: %1$s°%2$s</string>
+    <string name="wind_gust_daily">Wind Gust (Avg): %1$s %2$s</string>
+    <string name="dew_point_daily">Dew Point: %1$s°%2$s</string>
 </resources>

@@ -60,16 +60,60 @@ public class HelperFunctions {
             String thisTimestampString = node.path("validTime").textValue();
             // Check to make sure we are still in the same day
             OffsetDateTime thisTimestamp = OffsetDateTime.parse(thisTimestampString.substring(0, indexOfDuration));
-            if(timestamp.getDayOfWeek() != thisTimestamp.getDayOfWeek()) pastCurrentTime = true;
-            if(!pastCurrentTime) {
+            if(thisTimestamp.getDayOfWeek().compareTo(timestamp.getDayOfWeek()) > 0) pastCurrentTime = true;
+            if(!pastCurrentTime && thisTimestamp.getDayOfWeek().compareTo(timestamp.getDayOfWeek()) == 0) {
                 // Parse the duration
                 indexOfDuration = thisTimestampString.indexOf("/");
                 int duration = (int) Duration.parse(thisTimestampString.substring(indexOfDuration + 1)).toHours();
-                int thisValue = (int)node.path("value").asInt();
+                double thisValue = node.path("value").asDouble();
                 sumOfValues += (thisValue * duration);
             }
             i++;
         }
         return sumOfValues / HOURS_IN_DAY;
+    }
+
+    public static double getMin(Iterator<JsonNode> values, OffsetDateTime timestamp){
+        double lowest = Double.NaN;
+        boolean pastCurrentTime = false;
+        int indexOfDuration;
+        int i = 0;
+        while(!pastCurrentTime && values.hasNext() ){
+            JsonNode node = values.next();
+            indexOfDuration = node.path("validTime").textValue().indexOf("/");
+            String thisTimestampString = node.path("validTime").textValue();
+            // Check to make sure we are still in the same day
+            OffsetDateTime thisTimestamp = OffsetDateTime.parse(thisTimestampString.substring(0, indexOfDuration));
+            if(thisTimestamp.getDayOfWeek().compareTo(timestamp.getDayOfWeek()) > 0) pastCurrentTime = true;
+            if(!pastCurrentTime && thisTimestamp.getDayOfWeek().compareTo(timestamp.getDayOfWeek()) == 0) {
+                // Parse the duration
+                double thisValue = node.path("value").asDouble();
+                if(Double.isNaN(lowest)|| thisValue < lowest) lowest = thisValue;
+            }
+            i++;
+        }
+        return lowest;
+    }
+
+    public static double getMax(Iterator<JsonNode> values, OffsetDateTime timestamp){
+        double highest = Double.NaN;
+        boolean pastCurrentTime = false;
+        int indexOfDuration;
+        int i = 0;
+        while(!pastCurrentTime && values.hasNext() ){
+            JsonNode node = values.next();
+            indexOfDuration = node.path("validTime").textValue().indexOf("/");
+            String thisTimestampString = node.path("validTime").textValue();
+            // Check to make sure we are still in the same day
+            OffsetDateTime thisTimestamp = OffsetDateTime.parse(thisTimestampString.substring(0, indexOfDuration));
+            if(thisTimestamp.getDayOfWeek().compareTo(timestamp.getDayOfWeek()) > 0) pastCurrentTime = true;
+            if(!pastCurrentTime && thisTimestamp.getDayOfWeek().compareTo(timestamp.getDayOfWeek()) == 0) {
+                // Parse the duration
+                double thisValue = node.path("value").asDouble();
+                if(Double.isNaN(highest) || thisValue > highest) highest = thisValue;
+            }
+            i++;
+        }
+        return highest;
     }
 }

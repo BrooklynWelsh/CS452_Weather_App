@@ -18,4 +18,5 @@
     <string name="temp">%1$s°%2$s</string>
     <string name="feelsLike">Feels like %1$s°%2$s</string>
     <string name="rain_chance">%1s%%</string>
+    <string name="daily_forecast_button"><u>Detailed Daily Forecast</u></string>
 </resources>

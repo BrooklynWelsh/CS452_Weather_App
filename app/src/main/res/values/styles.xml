@@ -5,6 +5,7 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="fontFamily">@font/opensans</item>
     </style>
 
     <style name="AppTheme.NoActionBar">
@@ -12,6 +13,14 @@
         <item name="windowNoTitle">true</item>
         <item name="fontFamily">@font/opensans</item>
     </style>
+
+    <style name="ButtonFontStyle">
+        <item name="android:textSize">10sp</item>
+        <item name="fontFamily">@font/opensans_bold</item>
+        <item name="android:typeface">sans</item>
+    </style>
+
+
 
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 

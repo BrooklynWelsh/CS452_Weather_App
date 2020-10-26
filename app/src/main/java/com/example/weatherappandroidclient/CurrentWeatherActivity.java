@@ -1,6 +1,7 @@
 package com.example.weatherappandroidclient;
 
 
+import com.example.weatherappandroidclient.classes.DetailedMeasurement;
 import com.example.weatherappandroidclient.classes.HelperFunctions;
 import com.example.weatherappandroidclient.classes.NWSPoint;
 
@@ -24,13 +25,13 @@ import android.text.SpannableString;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.SuperscriptSpan;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -117,12 +118,14 @@ public class CurrentWeatherActivity extends Activity {
     Point size = new Point();
     WindowManager window;
     ConstraintLayout layout;
+    public static JsonNode detailedForecastNode;
+    public static ArrayList<DetailedMeasurement> dailyForecastMeasuresList = new ArrayList<>();
+    public static JsonNode gridpointForecastNode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Picasso.get().setLoggingEnabled(true);
-
         // Get views for editing later
         setContentView(R.layout.activity_main);
         info = findViewById(R.id.info);
@@ -345,6 +348,7 @@ public class CurrentWeatherActivity extends Activity {
         VolleyServerRequest stringRequest = new VolleyServerRequest(getApplicationContext(), new OnEventListener() {
             @Override
             public void onSuccess(Object object) throws IOException {
+                gridpointForecastNode = (JsonNode)object;
                 JsonNode periodsNode = ((JsonNode) object).path("properties").path("periods");
 
                 // Update isDaytime variable
@@ -366,6 +370,7 @@ public class CurrentWeatherActivity extends Activity {
         VolleyServerRequest stringRequest = new VolleyServerRequest(getApplicationContext(), new OnEventListener() {
                 @Override
                 public void onSuccess(Object object) throws IOException {
+                    detailedForecastNode = (JsonNode)object;
                     JsonNode propertiesNode = ((JsonNode) object).path("properties");
 
                     // For now we'll get hourly forecast data for rest of today and tomorrow
@@ -386,6 +391,7 @@ public class CurrentWeatherActivity extends Activity {
                     TextView lastRainView = null;
                     DateTimeFormatter fmt = DateTimeFormatter.ofPattern("hh:mm a");
 
+                    // TODO: Should probably create an object to contain all of these measurements, so we can transfer them over to DailyForecastActivity without redoing all of this work
                     while (!pastLimit && tempIterator.hasNext()) {
                         // Parse date from the next node
                         JsonNode thisTempNode = tempIterator.next();
@@ -395,7 +401,7 @@ public class CurrentWeatherActivity extends Activity {
                         if (ChronoUnit.DAYS.between(currentDate, tempTime) >= 2) pastLimit = true;
                             // If date is not more than a day out, get probabilityOfPrecipitation
                         else {
-                            int temperature = (int) Math.round(thisTempNode.path("value").asDouble());
+                            int temperature = HelperFunctions.convertToFahrenheit((int) Math.round(thisTempNode.path("value").asDouble()));
                             Iterator<JsonNode> precipitationIterator = propertiesNode.path("probabilityOfPrecipitation").path("values").elements();
                             JsonNode previousNode = null;
                             int rainProb = -1;
@@ -433,6 +439,8 @@ public class CurrentWeatherActivity extends Activity {
                             ImageView skyCoverIcon = new ImageView(CurrentWeatherActivity.this);
                             skyCoverIcon.setId(View.generateViewId());
                             TextView precipitationChanceView = new TextView(CurrentWeatherActivity.this);
+                            TextView hourlyTempView = new TextView(CurrentWeatherActivity.this);
+                            hourlyTempView.setId(View.generateViewId());
                             precipitationChanceView.setId(View.generateViewId());
                             if (lastTimestampView == null) {
                                 // If that variable is null, the view must be the first, so we know to position it to the left
@@ -442,21 +450,31 @@ public class CurrentWeatherActivity extends Activity {
                                 constraints.clone(hourlyScrollLayout);
 
                                 timeStamp.setText(fmt.format(tempTime));
-                                constraints.connect(timeStamp.getId(), ConstraintSet.LEFT, findViewById(R.id.hourlyScrollView).getId(), ConstraintSet.LEFT, dpToPx(2, CurrentWeatherActivity.this));
-                                constraints.connect(timeStamp.getId(), ConstraintSet.TOP, findViewById(R.id.hourlyScrollView).getId(), ConstraintSet.TOP, dpToPx(2, CurrentWeatherActivity.this));
+                                constraints.connect(timeStamp.getId(), ConstraintSet.LEFT, findViewById(R.id.hourlyScrollView).getId(), ConstraintSet.LEFT, HelperFunctions.dpToPx(2, CurrentWeatherActivity.this));
+                                constraints.connect(timeStamp.getId(), ConstraintSet.TOP, findViewById(R.id.hourlyScrollView).getId(), ConstraintSet.TOP, HelperFunctions.dpToPx(2, CurrentWeatherActivity.this));
                                 lastTimestampView = timeStamp;
 
                                 // Cloud cover icon ImageView
                                 hourlyScrollLayout.addView(skyCoverIcon);
                                 skyCoverIcon.setScaleType(ImageView.ScaleType.FIT_XY);
-                                skyCoverIcon.getLayoutParams().height = dpToPx(70, CurrentWeatherActivity.this);
-                                skyCoverIcon.getLayoutParams().width = dpToPx(70, CurrentWeatherActivity.this);
+                                skyCoverIcon.getLayoutParams().height = HelperFunctions.dpToPx(70, CurrentWeatherActivity.this);
+                                skyCoverIcon.getLayoutParams().width = HelperFunctions.dpToPx(70, CurrentWeatherActivity.this);
                                 constraints.clone(hourlyScrollLayout);
-                                setCloudIcon(skyCoverIcon, skyCover, tempTime);
-                                constraints.connect(skyCoverIcon.getId(), ConstraintSet.LEFT, findViewById(R.id.hourlyScrollView).getId(), ConstraintSet.LEFT, dpToPx(2, CurrentWeatherActivity.this));
-                                constraints.connect(skyCoverIcon.getId(), ConstraintSet.TOP, timeStamp.getId(), ConstraintSet.BOTTOM, dpToPx(1, CurrentWeatherActivity.this));
+                                HelperFunctions.setCloudIcon(CurrentWeatherActivity.this,skyCoverIcon, skyCover, tempTime);
+                                constraints.connect(skyCoverIcon.getId(), ConstraintSet.LEFT, findViewById(R.id.hourlyScrollView).getId(), ConstraintSet.LEFT, HelperFunctions.dpToPx(2, CurrentWeatherActivity.this));
+                                constraints.connect(skyCoverIcon.getId(), ConstraintSet.TOP, timeStamp.getId(), ConstraintSet.BOTTOM, HelperFunctions.dpToPx(1, CurrentWeatherActivity.this));
                                 constraints.applyTo(hourlyScrollLayout);
                                 lastCloudView = skyCoverIcon;
+
+                                // Temperature text
+                                hourlyScrollLayout.addView(hourlyTempView);
+                                constraints.clone(hourlyScrollLayout);
+                                hourlyTempView.setText(getString(R.string.temp, String.valueOf(temperature), "F"));
+                                hourlyTempView.setWidth(skyCoverIcon.getLayoutParams().width);
+                                hourlyTempView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                                constraints.connect(hourlyTempView.getId(), ConstraintSet.LEFT, skyCoverIcon.getId(), ConstraintSet.LEFT, 0);
+                                constraints.connect(hourlyTempView.getId(), ConstraintSet.TOP, skyCoverIcon.getId(), ConstraintSet.BOTTOM, HelperFunctions.dpToPx(1, CurrentWeatherActivity.this));
+                                constraints.applyTo(hourlyScrollLayout);
 
                                 // Finally, the  precipitation probability TextView
                                 hourlyScrollLayout.addView(precipitationChanceView);
@@ -465,7 +483,7 @@ public class CurrentWeatherActivity extends Activity {
                                 precipitationChanceView.setWidth(skyCoverIcon.getLayoutParams().width);
                                 precipitationChanceView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                                 constraints.connect(precipitationChanceView.getId(), ConstraintSet.LEFT, skyCoverIcon.getId(), ConstraintSet.LEFT, 0);
-                                constraints.connect(precipitationChanceView.getId(), ConstraintSet.TOP, skyCoverIcon.getId(), ConstraintSet.BOTTOM, dpToPx(1, CurrentWeatherActivity.this));
+                                constraints.connect(precipitationChanceView.getId(), ConstraintSet.TOP, hourlyTempView.getId(), ConstraintSet.BOTTOM, HelperFunctions.dpToPx(1, CurrentWeatherActivity.this));
                                 lastRainView = precipitationChanceView;
                                 constraints.applyTo(hourlyScrollLayout);
                             } else {
@@ -475,29 +493,40 @@ public class CurrentWeatherActivity extends Activity {
                                 hourlyScrollLayout.addView(timeStamp);
                                 constraints.clone(hourlyScrollLayout);
                                 timeStamp.setText(fmt.format(tempTime));
-                                constraints.connect(timeStamp.getId(), ConstraintSet.LEFT, lastCloudView.getId(), ConstraintSet.RIGHT, dpToPx(50, CurrentWeatherActivity.this));
-                                constraints.connect(timeStamp.getId(), ConstraintSet.TOP, findViewById(R.id.hourlyScrollView).getId(), ConstraintSet.TOP, dpToPx(2, CurrentWeatherActivity.this));
+                                constraints.connect(timeStamp.getId(), ConstraintSet.LEFT, lastCloudView.getId(), ConstraintSet.RIGHT, HelperFunctions.dpToPx(50, CurrentWeatherActivity.this));
+                                constraints.connect(timeStamp.getId(), ConstraintSet.TOP, findViewById(R.id.hourlyScrollView).getId(), ConstraintSet.TOP, HelperFunctions.dpToPx(2, CurrentWeatherActivity.this));
                                 constraints.applyTo(hourlyScrollLayout);
                                 lastTimestampView = timeStamp;
 
                                 hourlyScrollLayout.addView(skyCoverIcon);
                                 skyCoverIcon.setScaleType(ImageView.ScaleType.FIT_XY);
-                                skyCoverIcon.getLayoutParams().height = dpToPx(70, CurrentWeatherActivity.this);
-                                skyCoverIcon.getLayoutParams().width = dpToPx(70, CurrentWeatherActivity.this);
+                                skyCoverIcon.getLayoutParams().height = HelperFunctions.dpToPx(70, CurrentWeatherActivity.this);
+                                skyCoverIcon.getLayoutParams().width = HelperFunctions.dpToPx(70, CurrentWeatherActivity.this);
                                 constraints.clone(hourlyScrollLayout);
-                                setCloudIcon(skyCoverIcon, skyCover, tempTime);
-                                constraints.connect(skyCoverIcon.getId(), ConstraintSet.LEFT, lastCloudView.getId(), ConstraintSet.RIGHT, dpToPx(50, CurrentWeatherActivity.this));
-                                constraints.connect(skyCoverIcon.getId(), ConstraintSet.TOP, timeStamp.getId(), ConstraintSet.BOTTOM, dpToPx(1, CurrentWeatherActivity.this));
+                                HelperFunctions.setCloudIcon(CurrentWeatherActivity.this,skyCoverIcon, skyCover, tempTime);
+                                constraints.connect(skyCoverIcon.getId(), ConstraintSet.LEFT, lastCloudView.getId(), ConstraintSet.RIGHT, HelperFunctions.dpToPx(50, CurrentWeatherActivity.this));
+                                constraints.connect(skyCoverIcon.getId(), ConstraintSet.TOP, timeStamp.getId(), ConstraintSet.BOTTOM, HelperFunctions.dpToPx(1, CurrentWeatherActivity.this));
                                 constraints.applyTo(hourlyScrollLayout);
                                 lastCloudView = skyCoverIcon;
 
+                                // Temperature text
+                                hourlyScrollLayout.addView(hourlyTempView);
+                                constraints.clone(hourlyScrollLayout);
+                                hourlyTempView.setText(getString(R.string.temp, String.valueOf(temperature), "F"));
+                                hourlyTempView.setWidth(skyCoverIcon.getLayoutParams().width);
+                                hourlyTempView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                                constraints.connect(hourlyTempView.getId(), ConstraintSet.LEFT, skyCoverIcon.getId(), ConstraintSet.LEFT, 0);
+                                constraints.connect(hourlyTempView.getId(), ConstraintSet.TOP, skyCoverIcon.getId(), ConstraintSet.BOTTOM, HelperFunctions.dpToPx(1, CurrentWeatherActivity.this));
+                                constraints.applyTo(hourlyScrollLayout);
+
+                                // Finally, the  precipitation probability TextView
                                 hourlyScrollLayout.addView(precipitationChanceView);
                                 constraints.clone(hourlyScrollLayout);
                                 precipitationChanceView.setText(getString(R.string.rain_chance,String.valueOf(rainProb)));
                                 precipitationChanceView.setWidth(skyCoverIcon.getLayoutParams().width);
                                 precipitationChanceView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                                 constraints.connect(precipitationChanceView.getId(), ConstraintSet.LEFT, skyCoverIcon.getId(), ConstraintSet.LEFT, 0);
-                                constraints.connect(precipitationChanceView.getId(), ConstraintSet.TOP, skyCoverIcon.getId(), ConstraintSet.BOTTOM, dpToPx(1, CurrentWeatherActivity.this));
+                                constraints.connect(precipitationChanceView.getId(), ConstraintSet.TOP, hourlyTempView.getId(), ConstraintSet.BOTTOM, HelperFunctions.dpToPx(1, CurrentWeatherActivity.this));
                                 lastRainView = precipitationChanceView;
                                 constraints.applyTo(hourlyScrollLayout);
                             }
@@ -508,7 +537,6 @@ public class CurrentWeatherActivity extends Activity {
                     // Now begin working on the daily forecast view
                     int tempSize = propertiesNode.path("maxTemperature").path("values").size();
                     Iterator<JsonNode> minTempIterator = propertiesNode.path("minTemperature").path("values").elements();
-
                     XYMultipleSeriesRenderer mRenderer = new XYMultipleSeriesRenderer();
                     RangeCategorySeries series =
                             new RangeCategorySeries("High low temperature");
@@ -534,11 +562,14 @@ public class CurrentWeatherActivity extends Activity {
                     XYSeriesRenderer renderer = new XYSeriesRenderer();
                     mRenderer.addSeriesRenderer(renderer);
                     mRenderer.setPanEnabled(true, false);
+                    mRenderer.setZoomEnabled(false, false);
+                    mRenderer.setXAxisMin(1.5);
+                    mRenderer.setXAxisMax(7.5);
                     double[] panLimits = {0, 7.9, 0,0};
                     mRenderer.setPanLimits(panLimits);
                     mRenderer.setBarWidth(HelperFunctions.dpToPx(15, getApplicationContext()));
              //       mRenderer.setInScroll(true);
-                    mRenderer.setLabelsTextSize(dpToPx(8, getApplicationContext()));
+                    mRenderer.setLabelsTextSize(HelperFunctions.dpToPx(8, getApplicationContext()));
                     renderer.setChartValuesTextSize(12);
                     mRenderer.setAntialiasing(true);
                     mRenderer.setTextTypeface(ResourcesCompat.getFont(getApplicationContext(),R.font.opensans));
@@ -546,25 +577,52 @@ public class CurrentWeatherActivity extends Activity {
                     mRenderer.setShowLegend(false);
                     renderer.setChartValuesFormat(new DecimalFormat("#"));
                     renderer.setColor(Color.WHITE);
-                    renderer.setChartValuesTextSize(dpToPx(9, getApplicationContext()));
+                    renderer.setChartValuesTextSize(HelperFunctions.dpToPx(9, getApplicationContext()));
                     mRenderer.setXLabelsColor(Color.WHITE);
                     mRenderer.setShowGridY(false);
                     mRenderer.setShowGridY(false);
                     mRenderer.setChartTitle("Weekly High-Low Temperatures");
-                    mRenderer.setChartTitleTextSize(dpToPx(14, getApplicationContext()));
+                    mRenderer.setChartTitleTextSize(HelperFunctions.dpToPx(14, getApplicationContext()));
                     GraphicalView chartView = ChartFactory.getRangeBarChartView(
                             getApplicationContext(), dataset,
                             mRenderer, BarChart.Type.DEFAULT);
-
+                    chartView.setId(View.generateViewId());
                     ConstraintLayout view = findViewById(R.id.graphView);
-                    chartView.setMinimumHeight(dpToPx(200, getApplicationContext()));
-                    chartView.setMinimumWidth(dpToPx(200, getApplicationContext()));
+                    view.setId(View.generateViewId());
+                    chartView.setMinimumHeight(HelperFunctions.dpToPx(200, getApplicationContext()));
+                    chartView.setMinimumWidth(HelperFunctions.dpToPx(200, getApplicationContext()));
                     view.addView(chartView);
                     view.removeView(findViewById(R.id.progress_bar));
                     renderer.setGradientEnabled(true);
                     renderer.setGradientStart(lowestTemp + 10, Color.rgb(52,52,235));
                     renderer.setGradientStop(highestTemp + 10, Color.rgb(255,20,20));
                     renderer.setDisplayChartValues(true);
+
+                    // Create button to show more detailed daily forecast
+                    Button dailyForecastButton = new Button(CurrentWeatherActivity.this);
+                    dailyForecastButton.setId(View.generateViewId());
+                    ConstraintSet constraints = new ConstraintSet();
+                    view.addView(dailyForecastButton);
+                    constraints.clone(view);
+
+                    dailyForecastButton.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.opensans_bold));
+                    dailyForecastButton.setText("Detailed Daily Forecast");
+                    dailyForecastButton.setTypeface(ResourcesCompat.getFont(getBaseContext(), R.font.opensans_bold));
+                    dailyForecastButton.setTextAppearance(R.style.ButtonFontStyle);
+                    dailyForecastButton.setPaintFlags(Paint.UNDERLINE_TEXT_FLAG);
+                    dailyForecastButton.setBackgroundColor(Color.TRANSPARENT);
+                    dailyForecastButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent intent = new Intent(getApplicationContext(), DailyForecastActivity.class);
+                            startActivity(intent);
+                        }
+                    });
+
+                    constraints.connect(dailyForecastButton.getId(), ConstraintSet.LEFT, chartView.getId(), ConstraintSet.LEFT, HelperFunctions.dpToPx(10, CurrentWeatherActivity.this));
+                    constraints.connect(dailyForecastButton.getId(), ConstraintSet.RIGHT, chartView.getId(), ConstraintSet.RIGHT, HelperFunctions.dpToPx(10, CurrentWeatherActivity.this));
+                    constraints.connect(dailyForecastButton.getId(), ConstraintSet.TOP,  chartView.getId(), ConstraintSet.BOTTOM, HelperFunctions.dpToPx(10, CurrentWeatherActivity.this));
+                    constraints.applyTo(view);
                 }
 
                     @Override
@@ -574,50 +632,12 @@ public class CurrentWeatherActivity extends Activity {
                 }, url);
         }
 
-        private void setCloudIcon(ImageView cloudImageView, int cloudCover, OffsetDateTime time) {
-            // 0-10% = Clear, 10 - 50% = Scattered, 50 - 90% = Broken, 90 - 100% = Overcast
-
-                if(cloudCover > 90) cloudImageView.setImageDrawable(getResources().getDrawable(getResources().getIdentifier("@drawable/wi_cloudy", null, getPackageName())));
-                else if(cloudCover < 90 && cloudCover >= 50) {
-                    if (time.getHour() < 18 && time.getHour() > 6)
-                        cloudImageView.setImageDrawable(getResources().getDrawable(getResources().getIdentifier("@drawable/wi_day_cloudy", null, getPackageName())));
-                    else
-                        cloudImageView.setImageDrawable(getResources().getDrawable(getResources().getIdentifier("@drawable/wi_night_cloudy", null, getPackageName())));
-                }
-                if(cloudCover < 50 && cloudCover >= 10) {
-                    if (time.getHour() < 18 && time.getHour() > 6)
-                        cloudImageView.setImageDrawable(getResources().getDrawable(getResources().getIdentifier("@drawable/wi_day_cloudy_high", null, getPackageName())));
-                    else
-                        cloudImageView.setImageDrawable(getResources().getDrawable(getResources().getIdentifier("@drawable/wi_night_partly_cloudy", null, getPackageName())));
-                }
-                else {
-                    if (time.getHour() < 18 && time.getHour() > 6)
-                        cloudImageView.setImageDrawable(getResources().getDrawable(getResources().getIdentifier("@drawable/wi_day_sunny", null, getPackageName())));
-                    else
-                        cloudImageView.setImageDrawable(getResources().getDrawable(getResources().getIdentifier("@drawable/wi_night_clear", null, getPackageName())));
-                }
-        }
-
-    private int dpToPx(int dp, Context context) {
-            // Java functions only take pixel measurements, this is for converting to the more useful dp measurement
-            float density = context.getResources()
-                    .getDisplayMetrics()
-                    .density;
-            return Math.round((float) dp * density);
-        }
-
-        private int convertToFahrenheit(double celsius){
-            int fahrenheit = (int)(celsius / 5) * 9 + 32;
-            return fahrenheit;
-        }
-
-
-    private void startHourlyForecastActivity(View view){
+    private void startHourlyForecastActivity(){
         Intent intent = new Intent(this, HourlyForecastActivity.class);
         startActivity(intent);
     }
 
-    private void startWeeklyForecastActivity(View view){
+    private void startDailyForecastActivity(){
         Intent intent = new Intent(this, DailyForecastActivity.class);
         startActivity(intent);
     }

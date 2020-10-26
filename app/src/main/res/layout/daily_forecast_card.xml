@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:id="@+id/inflatedCardLayout"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="15dp"
+    >
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="30dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginBottom="30dp"
+        android:padding="10dp"
+        android:elevation="0dp"
+        app:cardBackgroundColor="#A6000000"
+        app:cardCornerRadius="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/inflatedCardConstraintLayout"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:paddingBottom="15dp"
+            >
+
+        <TextView
+            android:id="@+id/dateView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/opensans"
+            android:textSize="18dp"
+            android:text="Monday October 25"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginTop="8dp"
+            android:layout_marginLeft="8dp"
+            />
+
+        <TextView
+            android:id="@+id/lowTempView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="LO"
+            app:layout_constraintEnd_toStartOf="@id/tilde"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="8dp"
+            android:textSize="15dp"
+            />
+
+            <TextView
+                android:id="@+id/tilde"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="~"
+                android:textSize="15dp"
+                app:layout_constraintEnd_toStartOf="@id/highTempView"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginTop="8dp"
+                android:layout_marginLeft="5dp"
+                />
+
+        <TextView
+            android:id="@+id/highTempView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="HI"
+            android:textSize="15dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="8dp"
+            android:layout_marginRight="10dp"/>
+
+            <View
+                android:id="@+id/divider"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                app:layout_constraintTop_toBottomOf="@id/dateView"
+                android:layout_marginTop="20dp"
+                app:layout_constraintStart_toStartOf="parent"
+                android:background="@android:color/darker_gray"/>
+
+            <TextView
+                android:id="@+id/rainProbabilityView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Rain Probability: 00%"
+                app:layout_constraintTop_toBottomOf="@+id/divider"
+                app:layout_constraintStart_toStartOf="parent"
+                android:layout_marginTop="8dp"
+                android:layout_marginLeft="8dp"
+                android:textSize="15dp"
+                />
+
+            <TextView
+                android:id="@+id/precipitationQuantityView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/rainProbabilityView"
+                app:layout_constraintStart_toStartOf="parent"
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="8dp"
+                android:text="Rain Quantity (in mm): 00.00mm"
+                android:textSize="15dp"
+                />
+
+            <TextView
+                android:id="@+id/cloudCoverView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/precipitationQuantityView"
+                app:layout_constraintStart_toStartOf="parent"
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="8dp"
+                android:text="Cloud Cover: 00%"
+                android:textSize="15dp"
+                />
+
+            <TextView
+                android:id="@+id/highFeelsLikeView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/cloudCoverView"
+                app:layout_constraintStart_toStartOf="parent"
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="8dp"
+                android:text="Feels Like (High): 0 F "
+                android:textSize="15dp"
+                />
+
+            <TextView
+                android:id="@+id/lowFeelsLikeView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/highFeelsLikeView"
+                app:layout_constraintStart_toStartOf="parent"
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="8dp"
+                android:text="Feels Like (Low): 0 F "
+                android:textSize="15dp"
+                />
+
+            <TextView
+                android:id="@+id/humidityView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Humidity: 00%"
+                app:layout_constraintTop_toBottomOf="@+id/divider"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginTop="8dp"
+                android:layout_marginRight="8dp"
+                android:textSize="15dp"
+                />
+
+            <TextView
+                android:id="@+id/windSpeedView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/humidityView"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginRight="8dp"
+                android:layout_marginTop="8dp"
+                android:text="Wind Speed: 0 kmh"
+                android:textSize="15dp"
+                />
+
+            <TextView
+                android:id="@+id/windChillView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/windSpeedView"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="8dp"
+                android:text="Wind Chill: 0° F"
+                android:textSize="15dp"
+                />
+
+            <TextView
+                android:id="@+id/windGustView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/windChillView"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="8dp"
+                android:text="Wind Gust (Avg): 00 kmh"
+                android:textSize="15dp"
+                />
+
+            <TextView
+                android:id="@+id/dewPointView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/windGustView"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="8dp"
+                android:text="Dew Point: 0° F"
+                android:textSize="15dp"
+                />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

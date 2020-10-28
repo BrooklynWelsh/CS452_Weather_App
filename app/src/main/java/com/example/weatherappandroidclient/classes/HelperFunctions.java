@@ -4,7 +4,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.widget.ImageView;
 
+import com.example.weatherappandroidclient.R;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.squareup.picasso.Picasso;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -25,21 +27,30 @@ public class HelperFunctions {
         return Math.round((float) dp * density);
     }
 
-    public static void setCloudIcon(Activity activity, ImageView cloudImageView, int cloudCover, OffsetDateTime time) {
+    public static void setCloudIcon(Activity activity, ImageView cloudImageView, int cloudCover, OffsetDateTime time, int rainProb) {
         // 0-10% = Clear, 10 - 50% = Scattered, 50 - 90% = Broken, 90 - 100% = Overcast
+        // TODO: Can check the "weather" node at the gridpoints endpoint to check for conditions like fog, and can possibly choose icon for "showers" vs "heavy rain" and so on.
 
         if(cloudCover > 90) cloudImageView.setImageDrawable(activity.getResources().getDrawable(activity.getResources().getIdentifier("@drawable/wi_cloudy", null, activity.getPackageName())));
         else if(cloudCover < 90 && cloudCover >= 50) {
             if (time.getHour() < 18 && time.getHour() > 6)
-                cloudImageView.setImageDrawable(activity.getResources().getDrawable(activity.getResources().getIdentifier("@drawable/wi_day_cloudy", null, activity.getPackageName())));
+                if(rainProb > 30 && rainProb < 60)  cloudImageView.setImageDrawable(activity.getResources().getDrawable(activity.getResources().getIdentifier("@drawable/wi_day_showers", null, activity.getPackageName())));
+                else if( rainProb > 60)             cloudImageView.setImageDrawable(activity.getResources().getDrawable(activity.getResources().getIdentifier("@drawable/wi_day_rain", null, activity.getPackageName())));
+                else                                cloudImageView.setImageDrawable(activity.getResources().getDrawable(activity.getResources().getIdentifier("@drawable/wi_day_cloudy", null, activity.getPackageName())));
             else
-                cloudImageView.setImageDrawable(activity.getResources().getDrawable(activity.getResources().getIdentifier("@drawable/wi_night_cloudy", null, activity.getPackageName())));
+            if(rainProb > 10 && rainProb < 60)  cloudImageView.setImageDrawable(activity.getResources().getDrawable(activity.getResources().getIdentifier("@drawable/wi_night_showers", null, activity.getPackageName())));
+            else if( rainProb > 60)             cloudImageView.setImageDrawable(activity.getResources().getDrawable(activity.getResources().getIdentifier("@drawable/wi_night_rain", null, activity.getPackageName())));
+            else                                cloudImageView.setImageDrawable(activity.getResources().getDrawable(activity.getResources().getIdentifier("@drawable/wi_night_cloudy", null, activity.getPackageName())));
         }
         if(cloudCover < 50 && cloudCover >= 10) {
             if (time.getHour() < 18 && time.getHour() > 6)
-                cloudImageView.setImageDrawable(activity.getResources().getDrawable(activity.getResources().getIdentifier("@drawable/wi_day_cloudy_high", null, activity.getPackageName())));
+                if(rainProb > 30 && rainProb < 60)  cloudImageView.setImageDrawable(activity.getResources().getDrawable(activity.getResources().getIdentifier("@drawable/wi_day_showers", null, activity.getPackageName())));
+                else if( rainProb > 60)             cloudImageView.setImageDrawable(activity.getResources().getDrawable(activity.getResources().getIdentifier("@drawable/wi_day_rain", null, activity.getPackageName())));
+                else                                cloudImageView.setImageDrawable(activity.getResources().getDrawable(activity.getResources().getIdentifier("@drawable/wi_day_cloudy_high", null, activity.getPackageName())));
             else
-                cloudImageView.setImageDrawable(activity.getResources().getDrawable(activity.getResources().getIdentifier("@drawable/wi_night_partly_cloudy", null, activity.getPackageName())));
+                if(rainProb > 30 && rainProb < 60)  cloudImageView.setImageDrawable(activity.getResources().getDrawable(activity.getResources().getIdentifier("@drawable/wi_night_showers", null, activity.getPackageName())));
+                else if( rainProb > 60)             cloudImageView.setImageDrawable(activity.getResources().getDrawable(activity.getResources().getIdentifier("@drawable/wi_night_rain", null, activity.getPackageName())));
+                else                                cloudImageView.setImageDrawable(activity.getResources().getDrawable(activity.getResources().getIdentifier("@drawable/wi_night_partly_cloudy", null, activity.getPackageName())));
         }
         else {
             if (time.getHour() < 18 && time.getHour() > 6)
@@ -115,5 +126,13 @@ public class HelperFunctions {
             i++;
         }
         return highest;
+    }
+
+    public static void setBackgroundImage(ImageView background, String cloudCover, double rainAmount, boolean isDaytime, int screenWidth, int screenHeight){
+        if(rainAmount > 0) Picasso.get().load(R.drawable.rainy).resize(screenWidth, screenHeight).onlyScaleDown().into(background);
+        else if(cloudCover.equals("FEW") || cloudCover.equals("SCT")) Picasso.get().load(R.drawable.scattered_clouds).resize(screenWidth, screenHeight).onlyScaleDown().into(background);
+        else if(cloudCover.equals("BKN") || cloudCover.equals("OVC")) Picasso.get().load(R.drawable.overcast_sky).resize(screenWidth, screenHeight).onlyScaleDown().into(background);
+        else if(isDaytime == false) Picasso.get().load(R.drawable.clear_night_sky).resize(screenWidth, screenHeight).onlyScaleDown().into(background);
+        // Else we can leave it to the default clear sunny image
     }
 }

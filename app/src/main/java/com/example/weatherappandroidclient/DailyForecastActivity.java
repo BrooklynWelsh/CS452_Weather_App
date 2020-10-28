@@ -6,6 +6,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
@@ -60,6 +61,7 @@ public class DailyForecastActivity extends Activity {
     ArrayList<NWSForecast> forecasts = new ArrayList();
     JsonNode gridpointForecastNode = CurrentWeatherActivity.gridpointForecastNode;
     JsonNode detailedForecastNode = CurrentWeatherActivity.detailedForecastNode;
+    Drawable lastBackground = CurrentWeatherActivity.background.getDrawable();
     public final int HOURS_IN_DAY = 24;
     public View lastCardView =  null;
     public String tempUnit = "F";
@@ -70,6 +72,7 @@ public class DailyForecastActivity extends Activity {
     WindowManager window;
     Point size = new Point();
 
+    // TODO: Activity needs to get the current background from the last activity
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
@@ -85,7 +88,9 @@ public class DailyForecastActivity extends Activity {
             screenWidth = d.getWidth();
             screenHeight = d.getHeight();
         }
-        Picasso.get().load(R.drawable.weather_app_background).resize(screenWidth, screenHeight).onlyScaleDown().into(this.<ImageView>findViewById(R.id.background));
+        ImageView background = findViewById(R.id.background);
+        background.setImageDrawable(lastBackground);
+      //  Picasso.get().load(lastBackground).resize(screenWidth, screenHeight).onlyScaleDown().into(this.<ImageView>findViewById(R.id.background));
         getDailyForecastJSON(pointURL);
     }
 

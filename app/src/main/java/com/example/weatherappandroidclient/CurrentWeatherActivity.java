@@ -35,11 +35,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.constraintlayout.solver.widgets.Helper;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
 
 import com.android.volley.RequestQueue;
 
@@ -122,6 +124,8 @@ public class CurrentWeatherActivity extends Activity {
     public static ArrayList<DetailedMeasurement> dailyForecastMeasuresList = new ArrayList<>();
     public static JsonNode gridpointForecastNode;
     ConstraintLayout view;
+
+    // TODO: Cloudy sky image requires attribution, need to make a "Licenses" page
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -257,8 +261,6 @@ public class CurrentWeatherActivity extends Activity {
                 getHourlyForecastJSON(pointObject.getGridPointURL());       // Get data for hourly forecast card ("gridpoints" endpoint actually has the most detailed forecast...)
                 getMeasurementsURL(pointObject.getStationsURL());           // Get latest measurements URL from stations list
 
-
-
             }
 
             @Override
@@ -295,6 +297,10 @@ public class CurrentWeatherActivity extends Activity {
                 JsonNode response = (JsonNode)object;
                 JsonNode propertyNode = response.path("properties");
                 measurements = mapper.treeToValue(propertyNode, NWSLatestMeasurements.class);
+                measurements.setNode(propertyNode);
+                measurements.setCloudLayers();
+                String cloudCover = measurements.getCloudLayers();
+                HelperFunctions.setBackgroundImage(background, cloudCover, measurements.getPrecipitationLastHour(), isDaytime, screenWidth, screenHeight);
                 Log.d(TAG, measurements.toString());
 
                 // Want to make sure that degree symbol and unit are in smaller text and in superscript
@@ -337,6 +343,7 @@ public class CurrentWeatherActivity extends Activity {
                         break;
 
                 }
+                DrawableCompat.setTint(cloudCoverIcon.getDrawable(), Color.WHITE);
             }
 
             @Override
@@ -423,6 +430,8 @@ public class CurrentWeatherActivity extends Activity {
                             // 0-10% = Clear, 10 - 50% = Scattered, 50 - 90% = Broken, 90 - 100% = Overcast
                             Iterator<JsonNode> skyCoverIterator = propertiesNode.path("skyCover").path("values").elements();
                             int skyCover = 0;
+                          //  skyCover = HelperFunctions.get
+                            // TODO: Looks like these while loops are going through the ENTIRE node tree, even when we match the if conditions (Just while hasNext). Easy fix.
                             while (skyCoverIterator.hasNext()) {
                                 JsonNode skyNode = skyCoverIterator.next();
                                 indexOfDuration = skyNode.path("validTime").textValue().indexOf("/");
@@ -457,12 +466,13 @@ public class CurrentWeatherActivity extends Activity {
                                 lastTimestampView = timeStamp;
 
                                 // Cloud cover icon ImageView
-                                hourlyScrollLayout.addView(skyCoverIcon);
+                                 hourlyScrollLayout.addView(skyCoverIcon);
                                 skyCoverIcon.setScaleType(ImageView.ScaleType.FIT_XY);
                                 skyCoverIcon.getLayoutParams().height = HelperFunctions.dpToPx(70, CurrentWeatherActivity.this);
                                 skyCoverIcon.getLayoutParams().width = HelperFunctions.dpToPx(70, CurrentWeatherActivity.this);
                                 constraints.clone(hourlyScrollLayout);
-                                HelperFunctions.setCloudIcon(CurrentWeatherActivity.this,skyCoverIcon, skyCover, tempTime);
+                                HelperFunctions.setCloudIcon(CurrentWeatherActivity.this,skyCoverIcon, skyCover, tempTime, rainProb);
+                                DrawableCompat.setTint(skyCoverIcon.getDrawable(), Color.WHITE);
                                 constraints.connect(skyCoverIcon.getId(), ConstraintSet.LEFT, findViewById(R.id.hourlyScrollView).getId(), ConstraintSet.LEFT, HelperFunctions.dpToPx(2, CurrentWeatherActivity.this));
                                 constraints.connect(skyCoverIcon.getId(), ConstraintSet.TOP, timeStamp.getId(), ConstraintSet.BOTTOM, HelperFunctions.dpToPx(1, CurrentWeatherActivity.this));
                                 constraints.applyTo(hourlyScrollLayout);
@@ -505,7 +515,8 @@ public class CurrentWeatherActivity extends Activity {
                                 skyCoverIcon.getLayoutParams().height = HelperFunctions.dpToPx(70, CurrentWeatherActivity.this);
                                 skyCoverIcon.getLayoutParams().width = HelperFunctions.dpToPx(70, CurrentWeatherActivity.this);
                                 constraints.clone(hourlyScrollLayout);
-                                HelperFunctions.setCloudIcon(CurrentWeatherActivity.this,skyCoverIcon, skyCover, tempTime);
+                                HelperFunctions.setCloudIcon(CurrentWeatherActivity.this,skyCoverIcon, skyCover, tempTime, rainProb);
+                                DrawableCompat.setTint(skyCoverIcon.getDrawable(), Color.WHITE);
                                 constraints.connect(skyCoverIcon.getId(), ConstraintSet.LEFT, lastCloudView.getId(), ConstraintSet.RIGHT, HelperFunctions.dpToPx(50, CurrentWeatherActivity.this));
                                 constraints.connect(skyCoverIcon.getId(), ConstraintSet.TOP, timeStamp.getId(), ConstraintSet.BOTTOM, HelperFunctions.dpToPx(1, CurrentWeatherActivity.this));
                                 constraints.applyTo(hourlyScrollLayout);

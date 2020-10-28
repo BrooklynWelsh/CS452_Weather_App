@@ -1,8 +1,13 @@
 package com.example.weatherappandroidclient.classes;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)     // There are some fields in the properties field that we can safely ignore
@@ -17,6 +22,13 @@ public class NWSLatestMeasurements {
     double relativeHumidity;
     double heatIndex;
     double windChill;
+    double precipitationLastHour;
+
+    @JsonIgnore
+    String cloudLayers;
+
+    List<String> cloudTypes = Arrays.asList("FEW", "SCT", "BKN", "OVC");
+    JsonNode rootNode;
 
     // GETTERS
 
@@ -48,6 +60,13 @@ public class NWSLatestMeasurements {
     public double getHeatIndex() { return heatIndex; }
 
     public double getWindChill() { return windChill; }
+
+    public double getPrecipitationLastHour() {return precipitationLastHour;}
+
+    public String getCloudLayers(){return cloudLayers;}
+
+    // SETTER for JsonNode
+    public void setNode(JsonNode node) {this.rootNode = node;}
 
     @JsonProperty("textDescription")
     public void setTextDescription(String textDescription) {
@@ -88,6 +107,26 @@ public class NWSLatestMeasurements {
     private void unpackHeatIndex(Map<String, Object> heatIndex){
         if(heatIndex.get("value") != null) this.heatIndex = (double) heatIndex.get("value");
         else this.heatIndex = this.temperature - this.windChill;
+    }
+
+    @JsonProperty("precipitationLastHour")
+    private void unpackPrecipitationLastHour(Map<String, Object> precipitationLastHour){
+        if(precipitationLastHour.get("value") != null) this.precipitationLastHour = (double) precipitationLastHour.get("value");
+        else this.precipitationLastHour = 0;
+    }
+
+    public void setCloudLayers(){
+        // Set cloudLayers originally to none
+        this.cloudLayers = "NONE";
+        // Iterate through each layer object, set cloudLayers equal to the highest one
+        Iterator<JsonNode> layersNode = this.rootNode.path("cloudLayers").elements();
+        while(layersNode.hasNext()){
+            JsonNode thisNode = layersNode.next();
+            if(this.cloudLayers == "NONE") this.cloudLayers = thisNode.path("amount").textValue();
+            else if(cloudTypes.contains(thisNode.path("amount").textValue()) && cloudTypes.indexOf(thisNode.path("amount").textValue()) > cloudTypes.indexOf(this.cloudLayers)){
+                this.cloudLayers = thisNode.path("amount").textValue();
+            }
+        }
     }
 
     @Override

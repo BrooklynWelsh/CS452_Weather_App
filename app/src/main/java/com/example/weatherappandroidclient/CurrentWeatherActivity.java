@@ -430,17 +430,24 @@ public class CurrentWeatherActivity extends Activity {
                             // 0-10% = Clear, 10 - 50% = Scattered, 50 - 90% = Broken, 90 - 100% = Overcast
                             Iterator<JsonNode> skyCoverIterator = propertiesNode.path("skyCover").path("values").elements();
                             int skyCover = 0;
+                            boolean foundSkyCover = false;
                           //  skyCover = HelperFunctions.get
                             // TODO: Looks like these while loops are going through the ENTIRE node tree, even when we match the if conditions (Just while hasNext). Easy fix.
-                            while (skyCoverIterator.hasNext()) {
+                            while (skyCoverIterator.hasNext() && !foundSkyCover) {
                                 JsonNode skyNode = skyCoverIterator.next();
                                 indexOfDuration = skyNode.path("validTime").textValue().indexOf("/");
                                 if (ChronoUnit.HOURS.between(tempTime, OffsetDateTime.parse(skyNode.path("validTime").textValue().substring(0, indexOfDuration))) > 0) {
                                     // If we've went past the time for the temp node we are trying to match, just use the last known node
-                                    if (previousNode == null) skyCover = 0;
-                                    else skyCover = previousNode.path("value").intValue();
+                                    if (previousNode == null) {
+                                        skyCover = 0;
+                                    }
+                                    else{
+                                        skyCover = previousNode.path("value").intValue();
+                                    }
+                                    foundSkyCover = true;
                                 } else if (ChronoUnit.HOURS.between(tempTime, OffsetDateTime.parse(skyNode.path("validTime").textValue().substring(0, indexOfDuration))) == 0) {
                                     skyCover = skyNode.path("value").intValue();
+                                    foundSkyCover = true;
                                 }
                             }
                             // Finally, create a view with all of the info we just gathered

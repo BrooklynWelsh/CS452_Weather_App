@@ -28,6 +28,7 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
@@ -501,11 +502,15 @@ public class CurrentWeatherActivity extends Activity {
                                 precipitationChanceView.setText(getString(R.string.rain_chance,String.valueOf(rainProb)));
                                 precipitationChanceView.setWidth(skyCoverIcon.getLayoutParams().width);
                                 precipitationChanceView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                                precipitationChanceView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.wi_raindrops, 0, 0, 0);
+                                precipitationChanceView.setCompoundDrawablePadding(-70);
+
                                 constraints.connect(precipitationChanceView.getId(), ConstraintSet.LEFT, skyCoverIcon.getId(), ConstraintSet.LEFT, 0);
                                 constraints.connect(precipitationChanceView.getId(), ConstraintSet.TOP, hourlyTempView.getId(), ConstraintSet.BOTTOM, HelperFunctions.dpToPx(1, CurrentWeatherActivity.this));
                                 lastRainView = precipitationChanceView;
                                 constraints.applyTo(hourlyScrollLayout);
-                            } else {
+                            }
+                            else {
                                 // Else, we need to constrain our next views relative to the last view (to the right of last view, as opposed to constraining to the beginning of the scrollView)
                                 ConstraintSet constraints = new ConstraintSet();
 
@@ -545,10 +550,14 @@ public class CurrentWeatherActivity extends Activity {
                                 precipitationChanceView.setText(getString(R.string.rain_chance,String.valueOf(rainProb)));
                                 precipitationChanceView.setWidth(skyCoverIcon.getLayoutParams().width);
                                 precipitationChanceView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                                precipitationChanceView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.wi_raindrops, 0, 0, 0);
+                                DrawableCompat.setTint(precipitationChanceView.getCompoundDrawables()[0], Color.WHITE);
+                                precipitationChanceView.setCompoundDrawablePadding(-70);
                                 constraints.connect(precipitationChanceView.getId(), ConstraintSet.LEFT, skyCoverIcon.getId(), ConstraintSet.LEFT, 0);
                                 constraints.connect(precipitationChanceView.getId(), ConstraintSet.TOP, hourlyTempView.getId(), ConstraintSet.BOTTOM, HelperFunctions.dpToPx(1, CurrentWeatherActivity.this));
                                 lastRainView = precipitationChanceView;
                                 constraints.applyTo(hourlyScrollLayout);
+
                             }
 
                         }

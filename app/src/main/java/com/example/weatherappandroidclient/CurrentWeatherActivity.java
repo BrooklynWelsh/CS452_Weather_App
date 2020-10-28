@@ -121,6 +121,7 @@ public class CurrentWeatherActivity extends Activity {
     public static JsonNode detailedForecastNode;
     public static ArrayList<DetailedMeasurement> dailyForecastMeasuresList = new ArrayList<>();
     public static JsonNode gridpointForecastNode;
+    ConstraintLayout view;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -138,6 +139,7 @@ public class CurrentWeatherActivity extends Activity {
         layout = findViewById(R.id.mainLayout);
         hourlyScrollView = findViewById(R.id.hourlyScrollView);
         hourlyScrollLayout = findViewById(R.id.hourlyScrollLayout);
+        view = findViewById(R.id.graphView);
 
         temp.setTypeface(ResourcesCompat.getFont(this, R.font.opensans_bold));
         temp.setTextSize(getResources().getDimensionPixelSize(R.dimen.text_large));
@@ -587,7 +589,7 @@ public class CurrentWeatherActivity extends Activity {
                             getApplicationContext(), dataset,
                             mRenderer, BarChart.Type.DEFAULT);
                     chartView.setId(View.generateViewId());
-                    ConstraintLayout view = findViewById(R.id.graphView);
+                    //ConstraintLayout view = findViewById(R.id.graphView);
                     view.setId(View.generateViewId());
                     chartView.setMinimumHeight(HelperFunctions.dpToPx(200, getApplicationContext()));
                     chartView.setMinimumWidth(HelperFunctions.dpToPx(200, getApplicationContext()));

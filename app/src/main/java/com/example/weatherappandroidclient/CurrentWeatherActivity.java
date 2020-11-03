@@ -777,10 +777,14 @@ public class CurrentWeatherActivity extends Activity {
                     // for ActivityCompat#requestPermissions for more details.
                     return;
                 }
-                else startLocationUpdates();
+                else {
+                    Log.d("LOCATION REQUEST: ", "Couldn't find a valid database entry, getting GPS location.");
+                    startLocationUpdates();
+                }
             }
-                // TODO: Also check timestamp for age
             else{
+                // TODO: Could probably store latitude and longitude so that we don't need to check last known location for coordinates
+                Log.d("DATABASE ENTRY FOUND: ", "Found a valid latest_measurements entry, using database info to populate views.");
                 fusedClient.getLastLocation().addOnSuccessListener(CurrentWeatherActivity.this, new OnSuccessListener<Location>() {
                     @Override
                     public void onSuccess(Location location) {

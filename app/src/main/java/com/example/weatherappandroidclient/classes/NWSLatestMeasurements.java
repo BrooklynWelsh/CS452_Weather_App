@@ -1,36 +1,58 @@
 package com.example.weatherappandroidclient.classes;
 
+// Jackson imports
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 
+// Java class imports
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-@JsonIgnoreProperties(ignoreUnknown = true)     // There are some fields in the properties field that we can safely ignore
+// Room SQLite library imports
+import androidx.annotation.NonNull;
+import androidx.room.Entity;
+import androidx.room.Ignore;
+import androidx.room.PrimaryKey;
+
+@JsonIgnoreProperties(ignoreUnknown = true)     // There are some fields in the properties JSON tree that we can safely ignore
+@Entity(tableName = "latest_measurements")
 public class NWSLatestMeasurements {
+
+    @JsonProperty("timestamp")
+    @NonNull
+    @PrimaryKey
+    OffsetDateTime timestamp;
     @JsonProperty("textDescription")
-    String textDescription;
-    double temperature;
-    double windSpeed;
-    int seaLevelPressure;
-    int visibility;
+    public String textDescription;
+    public double temperature;
+    public double windSpeed;
+    public int seaLevelPressure;
+    public int visibility;
     // TODO: include variables for precipitation last hour, 3 hours, 6 hours
-    double relativeHumidity;
-    double heatIndex;
-    double windChill;
-    double precipitationLastHour;
+    public double relativeHumidity;
+    public double heatIndex;
+    public double windChill;
+    public double precipitationLastHour;
 
     @JsonIgnore
-    String cloudLayers;
+    public String cloudLayers;
 
+    @Ignore
+    @JsonIgnore
     List<String> cloudTypes = Arrays.asList("FEW", "SCT", "BKN", "OVC");
+
+    @Ignore
     JsonNode rootNode;
 
     // GETTERS
+    @JsonProperty("timestamp")
+    public OffsetDateTime getTimestamp(){return timestamp;
+    }
 
     @JsonProperty("textDescription")
     public String getTextDescription() {
@@ -65,8 +87,12 @@ public class NWSLatestMeasurements {
 
     public String getCloudLayers(){return cloudLayers;}
 
-    // SETTER for JsonNode
+    // SETTERS
     public void setNode(JsonNode node) {this.rootNode = node;}
+
+    public void setTimestamp(OffsetDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
 
     @JsonProperty("textDescription")
     public void setTextDescription(String textDescription) {

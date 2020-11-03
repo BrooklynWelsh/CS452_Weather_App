@@ -72,7 +72,7 @@ public class DailyForecastActivity extends Activity {
     WindowManager window;
     Point size = new Point();
 
-    // TODO: Activity needs to get the current background from the last activity
+    // TODO: Refactor activity to show a summary of daily forecast, and allow user to tap for a more detailed one.
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.widget.ImageView;
 
+import com.example.database.DatabaseClient;
 import com.example.weatherappandroidclient.R;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.squareup.picasso.Picasso;
@@ -131,4 +132,13 @@ public class HelperFunctions {
         else if(isDaytime == false) Picasso.get().load(R.drawable.clear_night_sky).resize(screenWidth, screenHeight).onlyScaleDown().into(background);
         // Else we can leave it to the default clear sunny image
     }
+
+    public static void saveNWSLatestMeasurement(Context context, NWSLatestMeasurements measurements){
+        DatabaseClient.getInstance(context).getAppDatabase()
+                .NWSLatestMeasurementsDAO()
+                .insert(measurements);
+    }
+
+
+
 }

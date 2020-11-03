@@ -396,74 +396,76 @@ public class CurrentWeatherActivity extends Activity {
                     mRenderer.addXTextLabel(i, day.toString());
                 }
 
-                XYMultipleSeriesDataset dataset = new XYMultipleSeriesDataset();
+                if(view.getChildAt(1) == null) {    // A check to make sure we haven't already drawn the graph
+                    XYMultipleSeriesDataset dataset = new XYMultipleSeriesDataset();
 
-                dataset.addSeries(series.toXYSeries());
+                    dataset.addSeries(series.toXYSeries());
 
-                XYSeriesRenderer renderer = new XYSeriesRenderer();
-                mRenderer.addSeriesRenderer(renderer);
-                mRenderer.setPanEnabled(true, false);
-                mRenderer.setZoomEnabled(false, false);
-                mRenderer.setXAxisMin(1.5);
-                mRenderer.setXAxisMax(7.5);
-                double[] panLimits = {0, 7.9, 0, 0};
-                mRenderer.setPanLimits(panLimits);
-                mRenderer.setBarWidth(HelperFunctions.dpToPx(15, getApplicationContext()));
-                //       mRenderer.setInScroll(true);
-                mRenderer.setLabelsTextSize(HelperFunctions.dpToPx(8, getApplicationContext()));
-                renderer.setChartValuesTextSize(12);
-                mRenderer.setAntialiasing(true);
-                mRenderer.setTextTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.opensans));
-                renderer.setShowLegendItem(false);
-                mRenderer.setShowLegend(false);
-                renderer.setChartValuesFormat(new DecimalFormat("#"));
-                renderer.setColor(Color.WHITE);
-                renderer.setChartValuesTextSize(HelperFunctions.dpToPx(9, getApplicationContext()));
-                mRenderer.setXLabelsColor(Color.WHITE);
-                mRenderer.setShowGridY(false);
-                mRenderer.setShowGridY(false);
-                mRenderer.setChartTitle("Weekly High-Low Temperatures");
-                mRenderer.setChartTitleTextSize(HelperFunctions.dpToPx(14, getApplicationContext()));
-                GraphicalView chartView = ChartFactory.getRangeBarChartView(
-                        getApplicationContext(), dataset,
-                        mRenderer, BarChart.Type.DEFAULT);
-                chartView.setId(View.generateViewId());
-                //ConstraintLayout view = findViewById(R.id.graphView);
-                view.setId(View.generateViewId());
-                chartView.setMinimumHeight(HelperFunctions.dpToPx(200, getApplicationContext()));
-                chartView.setMinimumWidth(HelperFunctions.dpToPx(200, getApplicationContext()));
-                view.addView(chartView);
-                view.removeView(findViewById(R.id.progress_bar));
-                renderer.setGradientEnabled(true);
-                renderer.setGradientStart(lowestTemp, Color.rgb(0, 57, 235));
-                renderer.setGradientStop(highestTemp + 5, Color.rgb(242, 96, 1));
-                renderer.setDisplayChartValues(true);
+                    XYSeriesRenderer renderer = new XYSeriesRenderer();
+                    mRenderer.addSeriesRenderer(renderer);
+                    mRenderer.setPanEnabled(true, false);
+                    mRenderer.setZoomEnabled(false, false);
+                    mRenderer.setXAxisMin(1.5);
+                    mRenderer.setXAxisMax(7.5);
+                    double[] panLimits = {0, 7.9, 0, 0};
+                    mRenderer.setPanLimits(panLimits);
+                    mRenderer.setBarWidth(HelperFunctions.dpToPx(15, getApplicationContext()));
+                    //       mRenderer.setInScroll(true);
+                    mRenderer.setLabelsTextSize(HelperFunctions.dpToPx(8, getApplicationContext()));
+                    renderer.setChartValuesTextSize(12);
+                    mRenderer.setAntialiasing(true);
+                    mRenderer.setTextTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.opensans));
+                    renderer.setShowLegendItem(false);
+                    mRenderer.setShowLegend(false);
+                    renderer.setChartValuesFormat(new DecimalFormat("#"));
+                    renderer.setColor(Color.WHITE);
+                    renderer.setChartValuesTextSize(HelperFunctions.dpToPx(9, getApplicationContext()));
+                    mRenderer.setXLabelsColor(Color.WHITE);
+                    mRenderer.setShowGridY(false);
+                    mRenderer.setShowGridY(false);
+                    mRenderer.setChartTitle("Weekly High-Low Temperatures");
+                    mRenderer.setChartTitleTextSize(HelperFunctions.dpToPx(14, getApplicationContext()));
+                    GraphicalView chartView = ChartFactory.getRangeBarChartView(
+                            getApplicationContext(), dataset,
+                            mRenderer, BarChart.Type.DEFAULT);
+                    chartView.setId(View.generateViewId());
+                    //ConstraintLayout view = findViewById(R.id.graphView);
+                    view.setId(View.generateViewId());
+                    chartView.setMinimumHeight(HelperFunctions.dpToPx(200, getApplicationContext()));
+                    chartView.setMinimumWidth(HelperFunctions.dpToPx(200, getApplicationContext()));
+                    view.addView(chartView);
+                    view.removeView(findViewById(R.id.progress_bar));
+                    renderer.setGradientEnabled(true);
+                    renderer.setGradientStart(lowestTemp, Color.rgb(0, 57, 235));
+                    renderer.setGradientStop(highestTemp + 5, Color.rgb(242, 96, 1));
+                    renderer.setDisplayChartValues(true);
 
-                // Create button to show more detailed daily forecast
-                Button dailyForecastButton = new Button(CurrentWeatherActivity.this);
-                dailyForecastButton.setId(View.generateViewId());
-                ConstraintSet constraints = new ConstraintSet();
-                view.addView(dailyForecastButton);
-                constraints.clone(view);
+                    // Create button to show more detailed daily forecast
+                    Button dailyForecastButton = new Button(CurrentWeatherActivity.this);
+                    dailyForecastButton.setId(View.generateViewId());
+                    ConstraintSet constraints = new ConstraintSet();
+                    view.addView(dailyForecastButton);
+                    constraints.clone(view);
 
-                dailyForecastButton.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.opensans_bold));
-                dailyForecastButton.setText("Detailed Daily Forecast");
-                dailyForecastButton.setTypeface(ResourcesCompat.getFont(getBaseContext(), R.font.opensans_bold));
-                dailyForecastButton.setTextAppearance(R.style.ButtonFontStyle);
-                dailyForecastButton.setPaintFlags(Paint.UNDERLINE_TEXT_FLAG);
-                dailyForecastButton.setBackgroundColor(Color.TRANSPARENT);
-                dailyForecastButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent intent = new Intent(getApplicationContext(), DailyForecastActivity.class);
-                        startActivity(intent);
-                    }
-                });
+                    dailyForecastButton.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.opensans_bold));
+                    dailyForecastButton.setText("Detailed Daily Forecast");
+                    dailyForecastButton.setTypeface(ResourcesCompat.getFont(getBaseContext(), R.font.opensans_bold));
+                    dailyForecastButton.setTextAppearance(R.style.ButtonFontStyle);
+                    dailyForecastButton.setPaintFlags(Paint.UNDERLINE_TEXT_FLAG);
+                    dailyForecastButton.setBackgroundColor(Color.TRANSPARENT);
+                    dailyForecastButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent intent = new Intent(getApplicationContext(), DailyForecastActivity.class);
+                            startActivity(intent);
+                        }
+                    });
 
-                constraints.connect(dailyForecastButton.getId(), ConstraintSet.LEFT, chartView.getId(), ConstraintSet.LEFT, HelperFunctions.dpToPx(10, CurrentWeatherActivity.this));
-                constraints.connect(dailyForecastButton.getId(), ConstraintSet.RIGHT, chartView.getId(), ConstraintSet.RIGHT, HelperFunctions.dpToPx(10, CurrentWeatherActivity.this));
-                constraints.connect(dailyForecastButton.getId(), ConstraintSet.TOP, chartView.getId(), ConstraintSet.BOTTOM, HelperFunctions.dpToPx(10, CurrentWeatherActivity.this));
-                constraints.applyTo(view);
+                    constraints.connect(dailyForecastButton.getId(), ConstraintSet.LEFT, chartView.getId(), ConstraintSet.LEFT, HelperFunctions.dpToPx(10, CurrentWeatherActivity.this));
+                    constraints.connect(dailyForecastButton.getId(), ConstraintSet.RIGHT, chartView.getId(), ConstraintSet.RIGHT, HelperFunctions.dpToPx(10, CurrentWeatherActivity.this));
+                    constraints.connect(dailyForecastButton.getId(), ConstraintSet.TOP, chartView.getId(), ConstraintSet.BOTTOM, HelperFunctions.dpToPx(10, CurrentWeatherActivity.this));
+                    constraints.applyTo(view);
+                }
             }
 
             @Override

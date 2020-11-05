@@ -139,6 +139,31 @@ public class HelperFunctions {
                 .insert(measurements);
     }
 
+    public static double getHourlyValue(Iterator<JsonNode> nodeIterator) {
+        Double value = null;
+        OffsetDateTime lastValidTime = null;
+        boolean foundValue = false;
+
+        if(!nodeIterator.hasNext()) {
+            value = null;    // Will put '???' in card view, no values available from NWS
+            foundValue = true;
+        }
+
+        while(nodeIterator.hasNext() && foundValue == false){
+            JsonNode thisNode = nodeIterator.next();
+            int indexOfDuration = thisNode.path("validTime").textValue().indexOf("/");
+
+            OffsetDateTime thisNodeValidTime = OffsetDateTime.parse(thisNode.path("validTime").textValue().substring(0, indexOfDuration));
+            if(!nodeIterator.hasNext()) value = Double.valueOf(thisNode.path("value").asText()); // No other nodes, get this node
+            else if(lastValidTime != null && thisNodeValidTime.compareTo(lastValidTime) > 0){       // Else if we already have a previous value and this one is too far...
+                value = Double.valueOf(thisNode.path("value").asText());
+                foundValue = true;
+            }
+            else lastValidTime = thisNodeValidTime;                                                   // Else, save this validTime and loop again
+        }
+
+        return value;
+    }
 
 
 }

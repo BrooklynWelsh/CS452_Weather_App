@@ -1,6 +1,9 @@
 package com.example.weatherappandroidclient.classes;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,12 +15,17 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.widget.ImageViewCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.transition.AutoTransition;
 import androidx.transition.TransitionManager;
 
+import com.example.weatherappandroidclient.CurrentWeatherActivity;
 import com.example.weatherappandroidclient.R;
 
+import org.checkerframework.checker.units.qual.Current;
+
+import java.lang.reflect.Field;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -53,14 +61,14 @@ public class HourlyAdapter extends
         thisTimestamp.setText(fmt.format(thisCard.getTimestamp()));
 
         TextView thisTemp = holder.temperatureText;
-        thisTemp.setText(String.valueOf(thisCard.getTemperature()));
+        thisTemp.setText(String.valueOf(thisCard.getTemperature()) + "°F");
 
         TextView thisConditions = holder.conditionsText;
         //thisTemp.setText(String.valueOf(thisCard.getTemperature()));
         // Determine the conditions
 
         TextView thisPrecipitationChance = holder.precipitationChanceText;
-        thisPrecipitationChance.setText(String.valueOf(thisCard.getPrecipitationChance()));
+        thisPrecipitationChance.setText(String.valueOf(thisCard.getPrecipitationChance()) + "%");
 
         TextView thisWindDirection = holder.windDirectionText;
         thisWindDirection.setText(thisCard.getWindDirection());
@@ -83,10 +91,12 @@ public class HourlyAdapter extends
         TextView thisVisibility = holder.visibilityText;
         thisVisibility.setText(String.valueOf(thisCard.getVisibility()));
 
-        // Set onclick listener for the dropdown arrow
-
+        // Determine the icon for weather conditions
+        ImageView thisIcon = holder.iconView;
+        int drawableResourceId = holder.iconView.getContext().getResources().getIdentifier(thisCard.drawableString, "drawable", holder.iconView.getContext().getPackageName());
+        thisIcon.setImageDrawable(holder.iconView.getContext().getResources().getDrawable(drawableResourceId));
+        ImageViewCompat.setImageTintList(thisIcon, ColorStateList.valueOf(Color.WHITE));
     }
-
     @Override
     public int getItemCount() {
         return cards.size();

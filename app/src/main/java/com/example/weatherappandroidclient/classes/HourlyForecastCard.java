@@ -18,6 +18,7 @@ public class HourlyForecastCard {
     private int windChill;
     private double pressure;
     boolean isDaytime;
+    String drawableString;
 
     public HourlyForecastCard(OffsetDateTime timestamp, int temperature, int feelsLike, int precipitationChance, int windSpeed, int windDirection,
                                 int dewPoint, int visibility, int humidity, int windChill, double pressure, int skyCover){
@@ -29,7 +30,10 @@ public class HourlyForecastCard {
         this.dewPoint = dewPoint;
         this.visibility = visibility;
         this.humidity = humidity;
-        this.windChill = windChill;
+
+        // Check for no wind chill
+        if(windChill == 0)  windChill = temperature;
+        else                this.windChill = temperature - windChill;
         this.pressure = pressure;
 
         // Calculate wind direction
@@ -51,11 +55,32 @@ public class HourlyForecastCard {
         else if(windDirection > 326 && windDirection < 349) this.windDirection = "NNW";
 
         // Determine string for conditions (cloudy, clear, ect)
-        if(precipitationChance > 50) this.conditions = "Rainy";
-        else if(skyCover > 90)                  this.conditions = "Cloudy";
-        else if(skyCover < 90 && skyCover > 50) this.conditions = "Mostly Cloudy";
-        else if(skyCover < 50 && skyCover > 10) this.conditions = "Partly Cloudy";
-        else                                    this.conditions = "Clear";
+        // Also set a string for what icon to use
+        if(precipitationChance > 50) {
+            this.conditions = "Rain";
+            if(this.isDaytime == true)  drawableString = "@drawable/wi_day_rain";
+            else                        drawableString = "@drawable/wi_alt_night_rain";
+        }
+        else if(skyCover > 90) {
+            this.conditions = "Cloudy";
+            drawableString = "@drawable/wi_cloudy";
+        }
+        else if(skyCover < 90 && skyCover > 50) {
+            this.conditions = "Mostly Cloudy";
+            if(this.isDaytime == true)  drawableString = "@drawable/wi_day_cloudy";
+            else                        drawableString = "@drawable/wi_alt_night_alt_cloudy";
+        }
+        else if(skyCover < 50 && skyCover > 10) {
+            this.conditions = "Partly Cloudy";
+            if(this.isDaytime == true)  drawableString = "@drawable/wi_day_cloudy";
+            else                        drawableString = "@drawable/wi_night_alt_partly_cloudy";
+        }
+        else
+        {
+            this.conditions = "Clear";
+            if(isDaytime)   drawableString ="@drawable/wi_day_clear";
+            else            drawableString ="@drawable/wi_night_clear";
+        }
 
         // TODO: Check for snow, ice, etc.
         // Set boolean for day or night time

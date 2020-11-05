@@ -188,6 +188,9 @@ public class CurrentWeatherActivity extends Activity {
         // Use picasso library to resize background image appropriately (avoid bitmap too large errors)
         Picasso.get().load(R.drawable.weather_app_background).resize(screenWidth, screenHeight).onlyScaleDown().into(background);
 
+        // Module needed for Jackson to construct Java OffsetDateTime fields
+        mapper.registerModule(new JavaTimeModule());
+
         // First we need to get GPS coordinates
         // So make sure GPS is enabled. If not, show an alert.
         final LocationManager manager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
@@ -316,25 +319,14 @@ public class CurrentWeatherActivity extends Activity {
                 // We now have the measurements, so map it to the NWSLatestMeasurements POJO
                 JsonNode response = (JsonNode) object;
                 JsonNode propertyNode = response.path("properties");
-
+                measurements = mapper.treeToValue(propertyNode, NWSLatestMeasurements.class);
                 HandlerThread handlerThread = new HandlerThread("SaveMeasurementsToDBThread");
                 handlerThread.start();
                 Looper DBInsertLooper = handlerThread.getLooper();
                 Handler DBInsertHandler = new Handler(DBInsertLooper);
 
                 DBInsertHandler.post(() -> {
-                    mapper.registerModule(new JavaTimeModule());
-                    try {
-                        measurements = mapper.treeToValue(propertyNode, NWSLatestMeasurements.class);
-                        HelperFunctions.saveNWSLatestMeasurement(getApplicationContext(), measurements);
-                    } catch (JsonProcessingException e) {
-                        Log.d("JSON Error:", "Error mapping JSON tree to NWSLatestMeasurements object.");
-                        try {
-                            getLatestMeasurements(url);
-                        } catch (IOException ioException) {
-                            ioException.printStackTrace();
-                        }
-                    }
+                    HelperFunctions.saveNWSLatestMeasurement(getApplicationContext(), measurements);
                 });
                 handlerThread.quitSafely();
                 measurements.setNode(propertyNode);
@@ -621,14 +613,14 @@ public class CurrentWeatherActivity extends Activity {
 //                }
 
                 // Try using generic helperFunction
-                int visibility = (int)HelperFunctions.getHourlyValue(propertiesNode.path("visibility").path("values").elements());
-                int apparentTemp = (int)HelperFunctions.getHourlyValue(propertiesNode.path("apparentTemperature").path("values").elements());
-                int humidity = (int)HelperFunctions.getHourlyValue(propertiesNode.path("relativeHumidity").path("values").elements());
-                double pressure = HelperFunctions.getHourlyValue(propertiesNode.path("pressure").path("values").elements());
-                int windSpeed = (int)HelperFunctions.getHourlyValue(propertiesNode.path("windSpeed").path("values").elements());
-                int windDirection = (int)HelperFunctions.getHourlyValue(propertiesNode.path("windDirection").path("values").elements());
-                int windChill = (int)HelperFunctions.getHourlyValue(propertiesNode.path("windChill").path("values").elements());
-                int dewPoint = (int)HelperFunctions.getHourlyValue(propertiesNode.path("dewpoint").path("values").elements());
+                int visibility = (int)HelperFunctions.getHourlyValue(propertiesNode.path("visibility").path("values").elements(), tempTime);
+                int apparentTemp = (int)HelperFunctions.getHourlyValue(propertiesNode.path("apparentTemperature").path("values").elements(), tempTime);
+                int humidity = (int)HelperFunctions.getHourlyValue(propertiesNode.path("relativeHumidity").path("values").elements(), tempTime);
+                double pressure = HelperFunctions.getHourlyValue(propertiesNode.path("pressure").path("values").elements(), tempTime);
+                int windSpeed = (int)HelperFunctions.getHourlyValue(propertiesNode.path("windSpeed").path("values").elements(), tempTime);
+                int windDirection = (int)HelperFunctions.getHourlyValue(propertiesNode.path("windDirection").path("values").elements(), tempTime);
+                int windChill = (int)HelperFunctions.getHourlyValue(propertiesNode.path("windChill").path("values").elements(), tempTime);
+                int dewPoint = (int)HelperFunctions.getHourlyValue(propertiesNode.path("dewpoint").path("values").elements(), tempTime);
 
                 HourlyForecastCard thisCard = new HourlyForecastCard(tempTime, temperature, apparentTemp, rainProb, windSpeed, windDirection, dewPoint, visibility, humidity, windChill,
                                                                         pressure, skyCover);
@@ -714,7 +706,7 @@ public class CurrentWeatherActivity extends Activity {
 
         handler.post(() -> {
             NWSLatestMeasurements databaseResult = DatabaseClient.getInstance(getApplicationContext()).getAppDatabase().NWSLatestMeasurementsDAO().getMeasurement();
-            if (databaseResult == null || ChronoUnit.HOURS.between(OffsetDateTime.now(), databaseResult.getTimestamp()) > 30) {
+            if (databaseResult == null || ChronoUnit.MINUTES.between(OffsetDateTime.now(), databaseResult.getTimestamp()) < 30) {
                 if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     // TODO: Consider calling
                     //    ActivityCompat#requestPermissions

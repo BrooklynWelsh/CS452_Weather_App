@@ -15,6 +15,9 @@ public interface  NWSLatestMeasurementsDAO {
     @Query("SELECT * from latest_measurements LIMIT 1")
     NWSLatestMeasurements getMeasurement();
 
+    @Query("DELETE FROM latest_measurements")
+    void deleteAll();
+
     @Insert
     void insert(NWSLatestMeasurements task);
 

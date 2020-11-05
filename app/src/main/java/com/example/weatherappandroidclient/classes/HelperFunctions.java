@@ -134,18 +134,20 @@ public class HelperFunctions {
     }
 
     public static void saveNWSLatestMeasurement(Context context, NWSLatestMeasurements measurements){
-        DatabaseClient.getInstance(context).getAppDatabase()
+        DatabaseClient.getInstance(context).getAppDatabase().NWSLatestMeasurementsDAO().deleteAll();    // Since we only need one latest measurement (maybe), first delete the old one
+        DatabaseClient.getInstance(context).getAppDatabase()                                            // Then insert latest measurements (maybe there's a better way to do this)
                 .NWSLatestMeasurementsDAO()
                 .insert(measurements);
     }
 
-    public static double getHourlyValue(Iterator<JsonNode> nodeIterator) {
+    public static double getHourlyValue(Iterator<JsonNode> nodeIterator, OffsetDateTime targetTime) {
         Double value = null;
         OffsetDateTime lastValidTime = null;
         boolean foundValue = false;
+        Double lastValue = null;
 
         if(!nodeIterator.hasNext()) {
-            value = null;    // Will put '???' in card view, no values available from NWS
+            value = 0.0;    // Will put '???' in card view, no values available from NWS
             foundValue = true;
         }
 
@@ -155,11 +157,14 @@ public class HelperFunctions {
 
             OffsetDateTime thisNodeValidTime = OffsetDateTime.parse(thisNode.path("validTime").textValue().substring(0, indexOfDuration));
             if(!nodeIterator.hasNext()) value = Double.valueOf(thisNode.path("value").asText()); // No other nodes, get this node
-            else if(lastValidTime != null && thisNodeValidTime.compareTo(lastValidTime) > 0){       // Else if we already have a previous value and this one is too far...
+            else if(lastValue!= null && thisNodeValidTime.compareTo(targetTime) > 0){       // Else if we already have a previous value and this one is too far...
                 value = Double.valueOf(thisNode.path("value").asText());
                 foundValue = true;
             }
-            else lastValidTime = thisNodeValidTime;                                                   // Else, save this validTime and loop again
+            else {
+                if(thisNode.path("value").isNull()) return 0;
+                else lastValue = Double.valueOf(thisNode.path("value").asText());                                                   // Else, save this validTime and loop again
+            }
         }
 
         return value;

@@ -5,4 +5,7 @@
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="text_large">17sp</dimen>
     <dimen name="text_small">5dp</dimen>
+    <dimen name="hourly_card_text">12dp</dimen>
+    <dimen name="hourly_card_image">30dp</dimen>
+    <dimen name="card_view_horizontal_margin">10dp</dimen>
 </resources>

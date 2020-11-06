@@ -91,6 +91,9 @@ public class HourlyAdapter extends
         TextView thisVisibility = holder.visibilityText;
         thisVisibility.setText(String.valueOf(thisCard.getVisibility()));
 
+        TextView thisWindChill = holder.windChillText;
+        thisWindChill.setText(String.valueOf(thisCard.getWindChill()));
+
         // Determine the icon for weather conditions
         ImageView thisIcon = holder.iconView;
         int drawableResourceId = holder.iconView.getContext().getResources().getIdentifier(thisCard.drawableString, "drawable", holder.iconView.getContext().getPackageName());
@@ -118,6 +121,7 @@ public class HourlyAdapter extends
         public TextView humidityText;
         public TextView pressureText;
         public TextView visibilityText;
+        public TextView windChillText;
 
         public ImageView iconView;
         public ImageButton arrowButton;
@@ -142,6 +146,7 @@ public class HourlyAdapter extends
             humidityText = (TextView) itemView.findViewById(R.id.humidityValue);
             pressureText = (TextView) itemView.findViewById(R.id.pressureValue);
             visibilityText = (TextView) itemView.findViewById(R.id.visibilityValue);
+            windChillText = (TextView) itemView.findViewById(R.id.windChillValue);
 
             iconView = (ImageView) itemView.findViewById(R.id.iconView);
 

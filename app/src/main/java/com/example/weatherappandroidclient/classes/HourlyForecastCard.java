@@ -39,7 +39,7 @@ public class HourlyForecastCard {
         else                                                     isDaytime = false;
 
         // Check for no wind chill
-        if(windChill == 0)  windChill = temperature;
+        if(windChill == 0)  this.windChill = temperature;
         else                this.windChill = temperature - windChill;
         this.pressure = pressure;
 

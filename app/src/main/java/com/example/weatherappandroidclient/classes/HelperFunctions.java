@@ -156,13 +156,23 @@ public class HelperFunctions {
             int indexOfDuration = thisNode.path("validTime").textValue().indexOf("/");
 
             OffsetDateTime thisNodeValidTime = OffsetDateTime.parse(thisNode.path("validTime").textValue().substring(0, indexOfDuration));
-            if(!nodeIterator.hasNext()) value = Double.valueOf(thisNode.path("value").asText()); // No other nodes, get this node
+            if(!nodeIterator.hasNext()) {
+                if(thisNode.path("value").isNull()){
+                    value = 0.0;
+                    foundValue = true;
+                }
+                else {
+                    value = Double.valueOf(thisNode.path("value").asText()); // No other nodes, get this node
+                    foundValue = true;
+                }
+            }
+
             else if(lastValue!= null && thisNodeValidTime.compareTo(targetTime) > 0){       // Else if we already have a previous value and this one is too far...
-                value = Double.valueOf(thisNode.path("value").asText());
+                value = lastValue;
                 foundValue = true;
             }
             else {
-                if(thisNode.path("value").isNull()) return 0;
+                if(thisNode.path("value").isNull()) lastValue = 0.0;
                 else lastValue = Double.valueOf(thisNode.path("value").asText());                                                   // Else, save this validTime and loop again
             }
         }

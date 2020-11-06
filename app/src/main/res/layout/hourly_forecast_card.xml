@@ -40,6 +40,7 @@
                 android:text="10 PM"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/temperatureView"
                 android:layout_marginTop="28dp"
                 android:layout_marginLeft="2dp"
                 />
@@ -52,6 +53,7 @@
                 android:text="41°F"
                 android:fontFamily="@font/opensans_bold"
                 app:layout_constraintStart_toEndOf="@id/timestampView"
+                app:layout_constraintEnd_toStartOf="@id/iconView"
                 app:layout_constraintTop_toTopOf="parent"
                 android:layout_marginTop="28dp"
                 android:layout_marginLeft="10dp"
@@ -62,6 +64,7 @@
                 android:layout_height="40dp"
                 android:id="@+id/iconView"
                 app:layout_constraintRight_toLeftOf="@id/weatherTextView"
+                app:layout_constraintLeft_toRightOf="@id/temperatureView"
                 app:layout_constraintTop_toTopOf="parent"
                 android:layout_marginRight="5dp"
                 android:layout_marginTop="24dp"
@@ -74,6 +77,7 @@
                 android:textSize="@dimen/hourly_card_text"
                 android:text="Clear"
                 app:layout_constraintRight_toLeftOf="@id/rainIcon"
+                app:layout_constraintLeft_toRightOf="@id/iconView"
                 app:layout_constraintTop_toTopOf="parent"
                 android:layout_marginTop="28dp"
                 android:layout_marginRight="10dp"
@@ -87,7 +91,8 @@
                 android:src="@drawable/wi_raindrops"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintRight_toLeftOf="@id/rainChanceTextView"
-                android:layout_marginRight="5dp"
+                app:layout_constraintLeft_toRightOf="@id/weatherTextView"
+                android:layout_marginLeft="0dp"
                 android:layout_marginTop="28dp"
                 android:scaleX="1.4"
                 android:scaleY="1.3"
@@ -101,8 +106,8 @@
                 android:textSize="@dimen/hourly_card_text"
                 android:text="0%"
                 app:layout_constraintRight_toLeftOf="@id/windIcon"
+                app:layout_constraintLeft_toRightOf="@id/rainIcon"
                 app:layout_constraintTop_toTopOf="parent"
-                android:layout_marginLeft="5dp"
                 android:layout_marginTop="28dp"
                 android:translationX="-5dp"
                 />
@@ -113,6 +118,7 @@
                 android:id="@+id/windIcon"
                 android:src="@drawable/wi_strong_wind"
                 app:layout_constraintRight_toLeftOf="@id/windDirectionTextView"
+                app:layout_constraintLeft_toRightOf="@id/rainChanceTextView"
                 app:layout_constraintTop_toTopOf="parent"
                 android:layout_marginLeft="15dp"
                 android:layout_marginTop="23dp"
@@ -125,6 +131,7 @@
                 android:textSize="@dimen/hourly_card_text"
                 android:text="N"
                 app:layout_constraintRight_toLeftOf="@id/windSpeedTextView"
+                app:layout_constraintLeft_toRightOf="@id/windIcon"
                 app:layout_constraintTop_toTopOf="parent"
                 android:layout_marginRight="3dp"
                 android:layout_marginTop="28dp"
@@ -137,6 +144,7 @@
                 android:textSize="@dimen/hourly_card_text"
                 android:text="-1 mph"
                 app:layout_constraintRight_toLeftOf="@id/expand_arrow"
+                app:layout_constraintLeft_toRightOf="@id/windDirectionTextView"
                 app:layout_constraintTop_toTopOf="parent"
                 android:layout_marginTop="28dp"
                 android:layout_marginLeft="5dp"
@@ -177,8 +185,8 @@
                         android:id="@+id/thermometerIcon"
                         android:layout_width="@dimen/hourly_card_image"
                         android:layout_height="@dimen/hourly_card_image"
-                        android:layout_marginStart="5dp"
-                        android:layout_marginTop="20dp"
+                        android:layout_marginStart="20dp"
+                        android:layout_marginTop="40dp"
                         android:layout_marginEnd="10dp"
                         android:layout_marginBottom="10dp"
                         app:layout_constraintLeft_toLeftOf="parent"
@@ -188,14 +196,13 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
                         android:id="@+id/feelsLikeText"
                         android:text="Feels Like"
                         android:textColor="#FFFFFF"
                         android:textSize="@dimen/hourly_card_text"
                         android:fontFamily="@font/opensans"
                         app:layout_constraintLeft_toRightOf="@id/thermometerIcon"
-                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintTop_toTopOf="@id/thermometerIcon"
                         />
 
                     <TextView
@@ -216,23 +223,22 @@
                         android:layout_height="@dimen/hourly_card_image"
                         android:id="@+id/dewPointIcon"
                         android:src="@drawable/wi_raindrop"
-                        app:layout_constraintLeft_toRightOf="@id/feelsLikeText"
+                        app:layout_constraintLeft_toLeftOf="@id/thermometerIcon"
+                        app:layout_constraintRight_toLeftOf="@id/humidityText"
                         app:layout_constraintTop_toTopOf="parent"
-                        android:layout_marginLeft="20dp"
-                        android:layout_marginTop="20dp"
+                        android:layout_marginTop="40dp"
                         />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
                         android:id="@+id/dewPointText"
                         android:text="Dew Point"
                         android:textColor="#FFFFFF"
                         android:textSize="@dimen/hourly_card_text"
                         android:fontFamily="@font/opensans"
                         app:layout_constraintLeft_toRightOf="@id/dewPointIcon"
-                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintTop_toTopOf="@id/dewPointIcon"
                         />
 
                     <TextView
@@ -253,23 +259,23 @@
                         android:layout_height="@dimen/hourly_card_image"
                         android:id="@+id/humidityIcon"
                         android:src="@drawable/wi_humidity"
-                        app:layout_constraintLeft_toRightOf="@id/dewPointText"
+                        app:layout_constraintRight_toLeftOf="@id/humidityText"
                         app:layout_constraintTop_toTopOf="parent"
                         android:layout_marginLeft="20dp"
-                        android:layout_marginTop="20dp"
+                        android:layout_marginTop="40dp"
                         />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
                         android:id="@+id/humidityText"
                         android:text="Humidity"
                         android:textColor="#FFFFFF"
                         android:textSize="@dimen/hourly_card_text"
                         android:fontFamily="@font/opensans"
-                        app:layout_constraintLeft_toRightOf="@id/humidityIcon"
-                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toTopOf="@id/humidityIcon"
+                        android:layout_marginRight="35dp"
                         />
 
                     <TextView
@@ -281,7 +287,7 @@
                         android:textSize="@dimen/hourly_card_text"
                         android:text="-1%"
                         android:fontFamily="@font/opensans_bold"
-                        app:layout_constraintLeft_toRightOf="@id/humidityIcon"
+                        app:layout_constraintLeft_toLeftOf="@id/humidityText"
                         app:layout_constraintTop_toTopOf="@id/humidityIcon"
                         />
 
@@ -324,7 +330,8 @@
                         android:layout_height="@dimen/hourly_card_image"
                         android:id="@+id/barometerIcon"
                         android:src="@drawable/wi_barometer"
-                        app:layout_constraintLeft_toLeftOf="@id/dewPointIcon"
+                        app:layout_constraintRight_toLeftOf="@id/visibilityText"
+                        app:layout_constraintLeft_toLeftOf="@id/windChillIcon"
                         app:layout_constraintTop_toTopOf="@id/dewPointIcon"
                         android:layout_marginTop="60dp"
                         />
@@ -358,7 +365,7 @@
                         android:layout_height="@dimen/hourly_card_image"
                         android:id="@+id/visibilityIcon"
                         android:src="@drawable/wi_fog"
-                        app:layout_constraintLeft_toLeftOf="@id/humidityIcon"
+                        app:layout_constraintRight_toLeftOf="@id/visibilityText"
                         app:layout_constraintTop_toTopOf="@id/pressureText"
                         />
 
@@ -370,8 +377,9 @@
                         android:textColor="#FFFFFF"
                         android:textSize="@dimen/hourly_card_text"
                         android:fontFamily="@font/opensans"
-                        app:layout_constraintLeft_toRightOf="@id/visibilityIcon"
+                        app:layout_constraintRight_toRightOf="parent"
                         app:layout_constraintTop_toTopOf="@id/visibilityIcon"
+                        android:layout_marginRight="35dp"
                         />
 
                     <TextView

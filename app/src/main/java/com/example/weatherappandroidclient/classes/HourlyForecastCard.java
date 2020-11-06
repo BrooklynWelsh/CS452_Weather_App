@@ -13,7 +13,7 @@ public class HourlyForecastCard {
     private int windSpeed;
     private String windDirection;
     private int dewPoint;
-    private int visibility;
+    private String visibility;
     private int humidity;
     private int windChill;
     private double pressure;
@@ -28,8 +28,15 @@ public class HourlyForecastCard {
         this.precipitationChance = precipitationChance;
         this.windSpeed = windSpeed;
         this.dewPoint = dewPoint;
-        this.visibility = visibility;
+        if(visibility > 5000)                               this.visibility = "Good";
+        else if(visibility <  5000 && visibility > 1000)    this.visibility = "Mist";
+        else if(visibility < 1000 && visibility > 100)      this.visibility = "Fog";
+        else if(visibility < 100)                           this.visibility = "Very Low";
         this.humidity = humidity;
+
+        // Set boolean for day or night time
+        if(timestamp.getHour() < 18 && timestamp.getHour() > 6)  isDaytime = true;
+        else                                                     isDaytime = false;
 
         // Check for no wind chill
         if(windChill == 0)  windChill = temperature;
@@ -59,7 +66,7 @@ public class HourlyForecastCard {
         if(precipitationChance > 50) {
             this.conditions = "Rain";
             if(this.isDaytime == true)  drawableString = "@drawable/wi_day_rain";
-            else                        drawableString = "@drawable/wi_alt_night_rain";
+            else                        drawableString = "@drawable/wi_night_alt_rain";
         }
         else if(skyCover > 90) {
             this.conditions = "Cloudy";
@@ -68,24 +75,21 @@ public class HourlyForecastCard {
         else if(skyCover < 90 && skyCover > 50) {
             this.conditions = "Mostly Cloudy";
             if(this.isDaytime == true)  drawableString = "@drawable/wi_day_cloudy";
-            else                        drawableString = "@drawable/wi_alt_night_alt_cloudy";
+            else                        drawableString = "@drawable/wi_night_alt_cloudy";
         }
         else if(skyCover < 50 && skyCover > 10) {
             this.conditions = "Partly Cloudy";
-            if(this.isDaytime == true)  drawableString = "@drawable/wi_day_cloudy";
+            if(this.isDaytime == true)  drawableString = "@drawable/wi_day_sunny_overcast";
             else                        drawableString = "@drawable/wi_night_alt_partly_cloudy";
         }
         else
         {
             this.conditions = "Clear";
-            if(isDaytime)   drawableString ="@drawable/wi_day_clear";
+            if(isDaytime)   drawableString ="@drawable/wi_day_sunny";
             else            drawableString ="@drawable/wi_night_clear";
         }
 
         // TODO: Check for snow, ice, etc.
-        // Set boolean for day or night time
-       if(timestamp.getHour() < 18 && timestamp.getHour() > 6)  isDaytime = true;
-       else                                                     isDaytime = false;
     }
 
     // GETTERS
@@ -121,7 +125,7 @@ public class HourlyForecastCard {
         return dewPoint;
     }
 
-    public int getVisibility() {
+    public String getVisibility() {
         return visibility;
     }
 

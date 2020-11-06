@@ -64,7 +64,7 @@ public class HourlyAdapter extends
         thisTemp.setText(String.valueOf(thisCard.getTemperature()) + "°F");
 
         TextView thisConditions = holder.conditionsText;
-        //thisTemp.setText(String.valueOf(thisCard.getTemperature()));
+        thisConditions.setText(thisCard.getConditions());
         // Determine the conditions
 
         TextView thisPrecipitationChance = holder.precipitationChanceText;

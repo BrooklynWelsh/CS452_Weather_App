@@ -1,4 +1,4 @@
-package com.example.weatherappandroidclient.classes;
+ package com.example.weatherappandroidclient.classes;
 
 import android.app.Activity;
 import android.content.Context;

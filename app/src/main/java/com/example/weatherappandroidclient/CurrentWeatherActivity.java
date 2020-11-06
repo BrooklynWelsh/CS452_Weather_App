@@ -531,11 +531,6 @@ public class CurrentWeatherActivity extends Activity {
         // If precip node with matching timestamp doesn't exist, get value from last node
 
         Iterator<JsonNode> tempIterator = propertiesNode.path("temperature").path("values").elements();
-        TextView lastTempView = null;
-        TextView lastTimestampView = null;
-        ImageView lastCloudView = null;
-        TextView lastRainView = null;
-        ImageView arrow = findViewById(R.id.expand_arrow);
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("hh:mm a");
 
         // NEW FOR RECYCLER VIEW

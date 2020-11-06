@@ -7,4 +7,5 @@
     <dimen name="text_small">5dp</dimen>
     <dimen name="hourly_card_text">13dp</dimen>
     <dimen name="hourly_card_image">30dp</dimen>
+    <dimen name="card_view_horizontal_margin">10dp</dimen>
 </resources>

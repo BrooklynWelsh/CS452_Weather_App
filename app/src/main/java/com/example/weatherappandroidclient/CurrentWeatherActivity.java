@@ -54,6 +54,7 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.android.volley.RequestQueue;
 
@@ -119,6 +120,7 @@ public class CurrentWeatherActivity extends Activity {
     private ImageView cloudCoverIcon;
     private TextView cloudDescription;
     private RecyclerView hourlyRecyclerView;
+    private SwipeRefreshLayout swipeRefresh;
 
     // Classes
     public static NWSPoint pointObject = new NWSPoint();
@@ -162,6 +164,17 @@ public class CurrentWeatherActivity extends Activity {
         layout = findViewById(R.id.mainLayout);
         hourlyRecyclerView = findViewById(R.id.hourlyRecyclerView);
         view = findViewById(R.id.graphView);
+        swipeRefresh = findViewById(R.id.swiperefresh);
+
+        swipeRefresh.setOnRefreshListener(
+                new SwipeRefreshLayout.OnRefreshListener() {
+                    @Override
+                    public void onRefresh() {
+                        startLocationUpdates();
+                        swipeRefresh.setRefreshing(false);
+                    }
+                }
+        );
 
         temp.setTypeface(ResourcesCompat.getFont(this, R.font.opensans_bold));
         temp.setTextSize(getResources().getDimensionPixelSize(R.dimen.text_large));
@@ -216,9 +229,10 @@ public class CurrentWeatherActivity extends Activity {
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 if (locationResult == null) {
-                    Log.d(TAG, "locationResult null");
+                    Log.d("LOCATION ERROR: ", "locationResult null");
                     return;
                 }
+                Log.d("LOCATION UPDATE: ", "requestLocationUpdates has received a new location. Calling \"onLocationResult\" callback.");
                 Log.d(TAG, "received " + locationResult.getLocations().size() + " locations");
                 for (Location loc : locationResult.getLocations()) {
                     latitude = loc.getLatitude();
@@ -609,7 +623,7 @@ public class CurrentWeatherActivity extends Activity {
 
                 // Try using generic helperFunction
                 int visibility = (int)HelperFunctions.getHourlyValue(propertiesNode.path("visibility").path("values").elements(), tempTime);
-                int apparentTemp = (int)HelperFunctions.getHourlyValue(propertiesNode.path("apparentTemperature").path("values").elements(), tempTime);
+                int apparentTemp = HelperFunctions.convertToFahrenheit((int)HelperFunctions.getHourlyValue(propertiesNode.path("apparentTemperature").path("values").elements(), tempTime));
                 int humidity = (int)HelperFunctions.getHourlyValue(propertiesNode.path("relativeHumidity").path("values").elements(), tempTime);
                 double pressure = HelperFunctions.getHourlyValue(propertiesNode.path("pressure").path("values").elements(), tempTime);
                 int windSpeed = (int)HelperFunctions.getHourlyValue(propertiesNode.path("windSpeed").path("values").elements(), tempTime);
@@ -696,8 +710,6 @@ public class CurrentWeatherActivity extends Activity {
         handlerThread.start();
         Looper looper = handlerThread.getLooper();
         Handler handler = new Handler(looper);
-        //startLocationUpdates();
-        //fusedClient.requestLocationUpdates(mRequest, mCallback, null);
 
         handler.post(() -> {
             NWSLatestMeasurements databaseResult = DatabaseClient.getInstance(getApplicationContext()).getAppDatabase().NWSLatestMeasurementsDAO().getMeasurement();
@@ -756,6 +768,7 @@ public class CurrentWeatherActivity extends Activity {
 
     @SuppressLint("MissingPermission")
     protected void startLocationUpdates() {
+        fusedClient.removeLocationUpdates(mCallback);
         fusedClient.requestLocationUpdates(mRequest, mCallback, null);
     }
 

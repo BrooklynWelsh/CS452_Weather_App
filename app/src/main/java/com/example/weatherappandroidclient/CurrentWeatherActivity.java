@@ -22,6 +22,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.Typeface;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
@@ -85,6 +86,7 @@ import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
 import org.achartengine.chart.BarChart;
 import org.achartengine.model.RangeCategorySeries;
+import org.achartengine.model.SeriesSelection;
 import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
@@ -391,6 +393,9 @@ public class CurrentWeatherActivity extends Activity {
                 int tempSize = propertiesNode.path("maxTemperature").path("values").size();
                 Iterator<JsonNode> minTempIterator = propertiesNode.path("minTemperature").path("values").elements();
                 XYMultipleSeriesRenderer mRenderer = new XYMultipleSeriesRenderer();
+                mRenderer.setXLabels(0);
+                final Typeface opensans = ResourcesCompat.getFont(getApplicationContext(), R.font.opensans_bold);
+                mRenderer.setTextTypeface(opensans);
                 RangeCategorySeries series =
                         new RangeCategorySeries("High low temperature");
                 int highestTemp = 0;
@@ -422,9 +427,7 @@ public class CurrentWeatherActivity extends Activity {
                     double[] panLimits = {0, 7.9, 0, 0};
                     mRenderer.setPanLimits(panLimits);
                     mRenderer.setBarWidth(HelperFunctions.dpToPx(15, getApplicationContext()));
-                    //       mRenderer.setInScroll(true);
-                    mRenderer.setLabelsTextSize(HelperFunctions.dpToPx(8, getApplicationContext()));
-                    renderer.setChartValuesTextSize(12);
+                    mRenderer.setLabelsTextSize(HelperFunctions.dpToPx(10, getApplicationContext()));
                     mRenderer.setAntialiasing(true);
                     mRenderer.setTextTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.opensans));
                     renderer.setShowLegendItem(false);
@@ -434,8 +437,9 @@ public class CurrentWeatherActivity extends Activity {
                     renderer.setChartValuesTextSize(HelperFunctions.dpToPx(9, getApplicationContext()));
                     mRenderer.setXLabelsColor(Color.WHITE);
                     mRenderer.setShowGridY(false);
-                    mRenderer.setShowGridY(false);
                     mRenderer.setChartTitle("Weekly High-Low Temperatures");
+                    int sideMargins = HelperFunctions.dpToPx(7, getApplicationContext());
+                    mRenderer.setMargins(new int[]{HelperFunctions.dpToPx(25, getApplicationContext()),sideMargins,0,sideMargins});
                     mRenderer.setChartTitleTextSize(HelperFunctions.dpToPx(14, getApplicationContext()));
                     GraphicalView chartView = ChartFactory.getRangeBarChartView(
                             getApplicationContext(), dataset,
@@ -451,6 +455,7 @@ public class CurrentWeatherActivity extends Activity {
                     renderer.setGradientStart(lowestTemp, Color.rgb(0, 57, 235));
                     renderer.setGradientStop(highestTemp + 5, Color.rgb(242, 96, 1));
                     renderer.setDisplayChartValues(true);
+
 
                     // Create button to show more detailed daily forecast
                     Button dailyForecastButton = new Button(CurrentWeatherActivity.this);
@@ -479,6 +484,7 @@ public class CurrentWeatherActivity extends Activity {
                     constraints.applyTo(view);
                 }
             }
+
 
             @Override
             public void onFailure(Exception e) {

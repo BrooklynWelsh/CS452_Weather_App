@@ -36,6 +36,8 @@ import android.text.style.SuperscriptSpan;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -46,6 +48,8 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.ActionMenuView;
 import androidx.constraintlayout.solver.widgets.Helper;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
@@ -108,7 +112,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class CurrentWeatherActivity extends Activity {
+public class CurrentWeatherActivity extends AppCompatActivity {
 
     private double latitude;
     private double longitude;
@@ -182,6 +186,19 @@ public class CurrentWeatherActivity extends Activity {
         temp.setTextSize(getResources().getDimensionPixelSize(R.dimen.text_large));
         background = findViewById(R.id.background);
         window = getWindowManager();
+
+        ActionMenuView bottomBar = (ActionMenuView) findViewById(R.id.toolbar_bottom);
+        Menu bottomMenu = bottomBar.getMenu();
+        getMenuInflater().inflate(R.menu.bottom_toolbar, bottomMenu);
+
+        for (int i = 0; i < bottomMenu.size(); i++){
+            bottomMenu.getItem(i).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener(){
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
+                    return onOptionsItemSelected(item);
+                }
+            });
+        }
 
         // We can just set the date now
         LocalDateTime currentDate = LocalDateTime.now();
@@ -457,31 +474,31 @@ public class CurrentWeatherActivity extends Activity {
                     renderer.setDisplayChartValues(true);
 
 
-                    // Create button to show more detailed daily forecast
-                    Button dailyForecastButton = new Button(CurrentWeatherActivity.this);
-                    dailyForecastButton.setId(View.generateViewId());
-                    ConstraintSet constraints = new ConstraintSet();
-                    view.addView(dailyForecastButton);
-                    constraints.clone(view);
-
-                    dailyForecastButton.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.opensans_bold));
-                    dailyForecastButton.setText("Detailed Daily Forecast");
-                    dailyForecastButton.setTypeface(ResourcesCompat.getFont(getBaseContext(), R.font.opensans_bold));
-                    dailyForecastButton.setTextAppearance(R.style.ButtonFontStyle);
-                    dailyForecastButton.setPaintFlags(Paint.UNDERLINE_TEXT_FLAG);
-                    dailyForecastButton.setBackgroundColor(Color.TRANSPARENT);
-                    dailyForecastButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            Intent intent = new Intent(getApplicationContext(), DailyForecastActivity.class);
-                            startActivity(intent);
-                        }
-                    });
-
-                    constraints.connect(dailyForecastButton.getId(), ConstraintSet.LEFT, chartView.getId(), ConstraintSet.LEFT, HelperFunctions.dpToPx(10, CurrentWeatherActivity.this));
-                    constraints.connect(dailyForecastButton.getId(), ConstraintSet.RIGHT, chartView.getId(), ConstraintSet.RIGHT, HelperFunctions.dpToPx(10, CurrentWeatherActivity.this));
-                    constraints.connect(dailyForecastButton.getId(), ConstraintSet.TOP, chartView.getId(), ConstraintSet.BOTTOM, HelperFunctions.dpToPx(10, CurrentWeatherActivity.this));
-                    constraints.applyTo(view);
+//                    // Create button to show more detailed daily forecast
+//                    Button dailyForecastButton = new Button(CurrentWeatherActivity.this);
+//                    dailyForecastButton.setId(View.generateViewId());
+//                    ConstraintSet constraints = new ConstraintSet();
+//                    view.addView(dailyForecastButton);
+//                    constraints.clone(view);
+//
+//                    dailyForecastButton.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.opensans_bold));
+//                    dailyForecastButton.setText("Detailed Daily Forecast");
+//                    dailyForecastButton.setTypeface(ResourcesCompat.getFont(getBaseContext(), R.font.opensans_bold));
+//                    dailyForecastButton.setTextAppearance(R.style.ButtonFontStyle);
+//                    dailyForecastButton.setPaintFlags(Paint.UNDERLINE_TEXT_FLAG);
+//                    dailyForecastButton.setBackgroundColor(Color.TRANSPARENT);
+//                    dailyForecastButton.setOnClickListener(new View.OnClickListener() {
+//                        @Override
+//                        public void onClick(View v) {
+//                            Intent intent = new Intent(getApplicationContext(), DailyForecastActivity.class);
+//                            startActivity(intent);
+//                        }
+//                    });
+//
+//                    constraints.connect(dailyForecastButton.getId(), ConstraintSet.LEFT, chartView.getId(), ConstraintSet.LEFT, HelperFunctions.dpToPx(10, CurrentWeatherActivity.this));
+//                    constraints.connect(dailyForecastButton.getId(), ConstraintSet.RIGHT, chartView.getId(), ConstraintSet.RIGHT, HelperFunctions.dpToPx(10, CurrentWeatherActivity.this));
+//                    constraints.connect(dailyForecastButton.getId(), ConstraintSet.TOP, chartView.getId(), ConstraintSet.BOTTOM, HelperFunctions.dpToPx(10, CurrentWeatherActivity.this));
+//                    constraints.applyTo(view);
                 }
             }
 

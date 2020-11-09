@@ -232,8 +232,6 @@
     </androidx.cardview.widget.CardView>
 </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.core.widget.NestedScrollView>
-
-
     <androidx.appcompat.widget.ActionMenuView
         android:id="@+id/toolbar_bottom"
         android:layout_width="match_parent"

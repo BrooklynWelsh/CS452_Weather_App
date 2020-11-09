@@ -6,7 +6,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/colorPrimary">
 
-<ImageView
+<ImageButton
     android:id="@+id/todayIcon"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
@@ -16,6 +16,7 @@
     app:layout_constraintTop_toTopOf="parent"
     android:layout_marginRight="120dp"
     android:layout_marginTop="10dp"
+    android:background="?attr/actionBarItemBackground"
     />
 
     <TextView
@@ -30,7 +31,7 @@
         app:layout_constraintEnd_toEndOf="@id/todayIcon"
         />
 
-    <ImageView
+    <ImageButton
         android:id="@+id/dailyIcon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -40,6 +41,7 @@
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginLeft="120dp"
         android:layout_marginTop="10dp"
+        android:background="@color/colorPrimary"
         />
 
     <TextView
@@ -52,5 +54,6 @@
         app:layout_constraintTop_toBottomOf="@id/dailyIcon"
         app:layout_constraintStart_toStartOf="@id/dailyIcon"
         app:layout_constraintEnd_toEndOf="@id/dailyIcon"
+        android:background="?attr/actionBarItemBackground"
         />
 </androidx.constraintlayout.widget.ConstraintLayout>

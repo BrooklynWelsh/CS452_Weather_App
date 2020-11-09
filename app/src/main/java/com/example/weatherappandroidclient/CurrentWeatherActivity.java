@@ -37,12 +37,15 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -152,7 +155,17 @@ public class CurrentWeatherActivity extends AppCompatActivity {
     public static JsonNode gridpointForecastNode;
     ConstraintLayout view;
 
+    final int buttonPressedColor = Color.parseColor("#9CD6F9");
+    boolean todayButtonClicked = true;
+    boolean dailyButtonClicked = false;
     // TODO: Cloudy sky image requires attribution, need to make a "Licenses" page
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.bottom_toolbar, menu);
+        return true;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -187,18 +200,57 @@ public class CurrentWeatherActivity extends AppCompatActivity {
         background = findViewById(R.id.background);
         window = getWindowManager();
 
-        ActionMenuView bottomBar = (ActionMenuView) findViewById(R.id.toolbar_bottom);
+
+
+        ActionMenuView bottomBar = findViewById(R.id.toolbar_bottom);
         Menu bottomMenu = bottomBar.getMenu();
+
         getMenuInflater().inflate(R.menu.bottom_toolbar, bottomMenu);
 
-        for (int i = 0; i < bottomMenu.size(); i++){
-            bottomMenu.getItem(i).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener(){
-                @Override
-                public boolean onMenuItemClick(MenuItem item) {
-                    return onOptionsItemSelected(item);
+        // Initialize toolbar buttons
+        ImageButton dailyButton = bottomBar.findViewById(R.id.dailyIcon);
+        TextView dailyText = bottomBar.findViewById(R.id.dailyText);
+        ImageButton todayButton = bottomBar.findViewById(R.id.todayIcon);
+        TextView todayText = bottomBar.findViewById(R.id.todayText);
+
+        todayButton.getDrawable().setTint(buttonPressedColor);
+        todayText.setTextColor(buttonPressedColor);
+
+        // Listener for home/hourly button
+        todayButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d("CLICK", "THE TODAY BUTTON WAS CLICKED");
+                if(dailyButtonClicked == true) {                       // Only do anything if user is on another activity (i.e. is on the daily forecast)
+                    todayButtonClicked = true;
+                    todayButton.getDrawable().setTint(buttonPressedColor);
+                    todayText.setTextColor(buttonPressedColor);
+
+                    // Reset the dailyButton's attributes
+                    dailyButton.getDrawable().setTint(Color.WHITE);
+                    dailyText.setTextColor(Color.WHITE);
+                    dailyButtonClicked = false;
                 }
-            });
-        }
+            }
+        });
+
+        // Listener for daily forecast button
+        dailyButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d("CLICK", "THE DAILY BUTTON WAS CLICKED");
+                if(todayButtonClicked == true) {
+                    dailyButtonClicked = true;
+                    dailyButton.getDrawable().setTint(buttonPressedColor);
+                    dailyText.setTextColor(buttonPressedColor);
+
+                    // Reset the todayButton's attributes
+                    todayButton.getDrawable().setTint(Color.WHITE);
+                    todayText.setTextColor(Color.WHITE);
+                    todayButtonClicked = false;
+                }
+            }
+        });
 
         // We can just set the date now
         LocalDateTime currentDate = LocalDateTime.now();
@@ -472,33 +524,6 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                     renderer.setGradientStart(lowestTemp, Color.rgb(0, 57, 235));
                     renderer.setGradientStop(highestTemp + 5, Color.rgb(242, 96, 1));
                     renderer.setDisplayChartValues(true);
-
-
-//                    // Create button to show more detailed daily forecast
-//                    Button dailyForecastButton = new Button(CurrentWeatherActivity.this);
-//                    dailyForecastButton.setId(View.generateViewId());
-//                    ConstraintSet constraints = new ConstraintSet();
-//                    view.addView(dailyForecastButton);
-//                    constraints.clone(view);
-//
-//                    dailyForecastButton.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.opensans_bold));
-//                    dailyForecastButton.setText("Detailed Daily Forecast");
-//                    dailyForecastButton.setTypeface(ResourcesCompat.getFont(getBaseContext(), R.font.opensans_bold));
-//                    dailyForecastButton.setTextAppearance(R.style.ButtonFontStyle);
-//                    dailyForecastButton.setPaintFlags(Paint.UNDERLINE_TEXT_FLAG);
-//                    dailyForecastButton.setBackgroundColor(Color.TRANSPARENT);
-//                    dailyForecastButton.setOnClickListener(new View.OnClickListener() {
-//                        @Override
-//                        public void onClick(View v) {
-//                            Intent intent = new Intent(getApplicationContext(), DailyForecastActivity.class);
-//                            startActivity(intent);
-//                        }
-//                    });
-//
-//                    constraints.connect(dailyForecastButton.getId(), ConstraintSet.LEFT, chartView.getId(), ConstraintSet.LEFT, HelperFunctions.dpToPx(10, CurrentWeatherActivity.this));
-//                    constraints.connect(dailyForecastButton.getId(), ConstraintSet.RIGHT, chartView.getId(), ConstraintSet.RIGHT, HelperFunctions.dpToPx(10, CurrentWeatherActivity.this));
-//                    constraints.connect(dailyForecastButton.getId(), ConstraintSet.TOP, chartView.getId(), ConstraintSet.BOTTOM, HelperFunctions.dpToPx(10, CurrentWeatherActivity.this));
-//                    constraints.applyTo(view);
                 }
             }
 

@@ -160,6 +160,14 @@ public class CurrentWeatherActivity extends AppCompatActivity {
     boolean dailyButtonClicked = false;
     // TODO: Cloudy sky image requires attribution, need to make a "Licenses" page
 
+    ActionMenuView bottomBar;
+    Menu bottomMenu;
+
+    public static ImageButton dailyButton;
+    public static TextView dailyText;
+    public static ImageButton todayButton;
+    public static TextView todayText;
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -202,16 +210,16 @@ public class CurrentWeatherActivity extends AppCompatActivity {
 
 
 
-        ActionMenuView bottomBar = findViewById(R.id.toolbar_bottom);
-        Menu bottomMenu = bottomBar.getMenu();
+        bottomBar = findViewById(R.id.toolbar_bottom);
+        bottomMenu = bottomBar.getMenu();
 
         getMenuInflater().inflate(R.menu.bottom_toolbar, bottomMenu);
 
         // Initialize toolbar buttons
-        ImageButton dailyButton = bottomBar.findViewById(R.id.dailyIcon);
-        TextView dailyText = bottomBar.findViewById(R.id.dailyText);
-        ImageButton todayButton = bottomBar.findViewById(R.id.todayIcon);
-        TextView todayText = bottomBar.findViewById(R.id.todayText);
+         dailyButton = bottomBar.findViewById(R.id.dailyIcon);
+         dailyText = bottomBar.findViewById(R.id.dailyText);
+         todayButton = bottomBar.findViewById(R.id.todayIcon);
+         todayText = bottomBar.findViewById(R.id.todayText);
 
         todayButton.getDrawable().setTint(buttonPressedColor);
         todayText.setTextColor(buttonPressedColor);
@@ -221,7 +229,7 @@ public class CurrentWeatherActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Log.d("CLICK", "THE TODAY BUTTON WAS CLICKED");
-                if(dailyButtonClicked == true) {                       // Only do anything if user is on another activity (i.e. is on the daily forecast)
+                if(dailyButtonClicked == true) {                                       // Only do anything if user is on another activity (i.e. is on the daily forecast)
                     todayButtonClicked = true;
                     todayButton.getDrawable().setTint(buttonPressedColor);
                     todayText.setTextColor(buttonPressedColor);
@@ -248,6 +256,9 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                     todayButton.getDrawable().setTint(Color.WHITE);
                     todayText.setTextColor(Color.WHITE);
                     todayButtonClicked = false;
+
+
+                    startDailyForecastActivity();
                 }
             }
         });

@@ -18,6 +18,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.ActionMenuView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
@@ -36,7 +37,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class DailyForecastActivity extends Activity {
+public class DailyForecastActivity extends AppCompatActivity {
 
     public static String pointURL = CurrentWeatherActivity.pointObject.getGridPointURL();    // Get pointURL from previous activity
     private TextView forecastText;
@@ -88,8 +89,8 @@ public class DailyForecastActivity extends Activity {
             screenWidth = d.getWidth();
             screenHeight = d.getHeight();
         }
-
-
+        ImageView background = findViewById(R.id.background);
+        background.setImageDrawable(lastBackground);
         getDailyForecastJSON(pointURL);
     }
 

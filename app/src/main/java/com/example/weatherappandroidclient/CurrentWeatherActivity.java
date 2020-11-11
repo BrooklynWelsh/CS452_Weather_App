@@ -60,6 +60,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -155,9 +156,6 @@ public class CurrentWeatherActivity extends AppCompatActivity {
     public static JsonNode gridpointForecastNode;
     ConstraintLayout view;
 
-    final int buttonPressedColor = Color.parseColor("#9CD6F9");
-    boolean todayButtonClicked = true;
-    boolean dailyButtonClicked = false;
     // TODO: Cloudy sky image requires attribution, need to make a "Licenses" page
 
     ActionMenuView bottomBar;
@@ -209,59 +207,6 @@ public class CurrentWeatherActivity extends AppCompatActivity {
         window = getWindowManager();
 
 
-
-        bottomBar = findViewById(R.id.toolbar_bottom);
-        bottomMenu = bottomBar.getMenu();
-
-        getMenuInflater().inflate(R.menu.bottom_toolbar, bottomMenu);
-
-        // Initialize toolbar buttons
-         dailyButton = bottomBar.findViewById(R.id.dailyIcon);
-         dailyText = bottomBar.findViewById(R.id.dailyText);
-         todayButton = bottomBar.findViewById(R.id.todayIcon);
-         todayText = bottomBar.findViewById(R.id.todayText);
-
-        todayButton.getDrawable().setTint(buttonPressedColor);
-        todayText.setTextColor(buttonPressedColor);
-
-        // Listener for home/hourly button
-        todayButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d("CLICK", "THE TODAY BUTTON WAS CLICKED");
-                if(dailyButtonClicked == true) {                                       // Only do anything if user is on another activity (i.e. is on the daily forecast)
-                    todayButtonClicked = true;
-                    todayButton.getDrawable().setTint(buttonPressedColor);
-                    todayText.setTextColor(buttonPressedColor);
-
-                    // Reset the dailyButton's attributes
-                    dailyButton.getDrawable().setTint(Color.WHITE);
-                    dailyText.setTextColor(Color.WHITE);
-                    dailyButtonClicked = false;
-                }
-            }
-        });
-
-        // Listener for daily forecast button
-        dailyButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d("CLICK", "THE DAILY BUTTON WAS CLICKED");
-                if(todayButtonClicked == true) {
-                    dailyButtonClicked = true;
-                    dailyButton.getDrawable().setTint(buttonPressedColor);
-                    dailyText.setTextColor(buttonPressedColor);
-
-                    // Reset the todayButton's attributes
-                    todayButton.getDrawable().setTint(Color.WHITE);
-                    todayText.setTextColor(Color.WHITE);
-                    todayButtonClicked = false;
-
-
-                    startDailyForecastActivity();
-                }
-            }
-        });
 
         // We can just set the date now
         LocalDateTime currentDate = LocalDateTime.now();
@@ -544,16 +489,6 @@ public class CurrentWeatherActivity extends AppCompatActivity {
 
             }
         }, url);
-    }
-
-    private void startHourlyForecastActivity() {
-        Intent intent = new Intent(this, HourlyForecastActivity.class);
-        startActivity(intent);
-    }
-
-    private void startDailyForecastActivity() {
-        Intent intent = new Intent(this, DailyForecastActivity.class);
-        startActivity(intent);
     }
 
     @SuppressLint("MissingPermission")

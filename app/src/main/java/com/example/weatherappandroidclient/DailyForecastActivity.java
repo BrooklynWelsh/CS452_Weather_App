@@ -150,6 +150,7 @@ public class DailyForecastActivity extends AppCompatActivity {
                     Iterator<JsonNode> windGustIterator =  propertiesNode.path("windGust").path("values").elements();
                     int windGust = (int) HelperFunctions.getDailyAverage(windGustIterator, maxTempTimestamp);
 
+
                     // Get highest and lowest apparent temperature
                     Iterator<JsonNode> apparentTemperatureIterator = propertiesNode.path("apparentTemperature").path("values").elements();
                     int lowestApparentTemp = HelperFunctions.convertToFahrenheit((int)HelperFunctions.getMin(apparentTemperatureIterator, maxTempTimestamp));
@@ -215,6 +216,10 @@ public class DailyForecastActivity extends AppCompatActivity {
                         TextView dewPointView = thisCard.findViewById(R.id.dewPointView);
                         dewPointView.setText(getString(R.string.dew_point_daily, String.valueOf((int)dewPoint), tempUnit));
 
+                        ImageView conditionsIcon = thisCard.findViewById(R.id.conditionsIcon);
+                        HelperFunctions.setCloudIcon(this, conditionsIcon, skyCover, maxTempTimestamp, precipitationProbability);
+                        conditionsIcon.getDrawable().setTint(Color.WHITE);
+
                     }
                     else{
                         // Else we need to attach this card to the bottom of the last card
@@ -262,6 +267,10 @@ public class DailyForecastActivity extends AppCompatActivity {
 
                         TextView dewPointView = thisCard.findViewById(R.id.dewPointView);
                         dewPointView.setText(getString(R.string.dew_point_daily, String.valueOf((int)dewPoint), tempUnit));
+
+                        ImageView conditionsIcon = thisCard.findViewById(R.id.conditionsIcon);
+                        HelperFunctions.setCloudIcon(this, conditionsIcon, skyCover, maxTempTimestamp, precipitationProbability);
+                        conditionsIcon.getDrawable().setTint(Color.WHITE);
 
                         constraints.connect(thisCard.getId(), ConstraintSet.LEFT, layout.getId(), ConstraintSet.LEFT, HelperFunctions.dpToPx(2, DailyForecastActivity.this));
                         constraints.connect(thisCard.getId(), ConstraintSet.TOP, lastCardView.getId(), ConstraintSet.BOTTOM, HelperFunctions.dpToPx(2, DailyForecastActivity.this));

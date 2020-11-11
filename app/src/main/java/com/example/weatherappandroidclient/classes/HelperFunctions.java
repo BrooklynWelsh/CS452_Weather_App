@@ -134,8 +134,8 @@ public class HelperFunctions {
     }
 
     public static void saveNWSLatestMeasurement(Context context, NWSLatestMeasurements measurements){
-        DatabaseClient.getInstance(context).getAppDatabase().NWSLatestMeasurementsDAO().deleteAll();    // Since we only need one latest measurement (maybe), first delete the old one
-        DatabaseClient.getInstance(context).getAppDatabase()                                            // Then insert latest measurements (maybe there's a better way to do this)
+        DatabaseClient.getInstance(context).getLatestMeasurementsDatabase().NWSLatestMeasurementsDAO().deleteAll();    // Since we only need one latest measurement (maybe), first delete the old one
+        DatabaseClient.getInstance(context).getLatestMeasurementsDatabase()                                            // Then insert latest measurements (maybe there's a better way to do this)
                 .NWSLatestMeasurementsDAO()
                 .insert(measurements);
     }

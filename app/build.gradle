@@ -12,6 +12,14 @@ android {
         versionCode 1
         versionName "1.0"
 
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += ["room.schemaLocation":
+                                      "$projectDir/schemas".toString()]
+            }
+        }
+
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -31,8 +39,9 @@ android {
 dependencies {
     def room_version = "2.2.5"
     implementation "androidx.room:room-runtime:$room_version"
+    implementation 'androidx.paging:paging-common:2.1.2'
     implementation "androidx.room:room-compiler:$room_version"
-    annotationProcessor "android.arch.persistence.room:compiler:$room_version"
+    annotationProcessor "android.arch.persistence.room:compiler:2.25"
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation 'com.squareup.picasso:picasso:2.71828'
     implementation files('libs/achartengine-1.2.0.jar')

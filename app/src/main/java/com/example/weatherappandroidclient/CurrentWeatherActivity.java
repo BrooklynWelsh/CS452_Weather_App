@@ -1,18 +1,18 @@
 package com.example.weatherappandroidclient;
 
 
+import com.example.database.CityDatabase;
+import com.example.database.LatestMeasurementsDatabase;
 import com.example.database.DatabaseClient;
-import com.example.database.OffsetDateTimeConverter;
+import com.example.weatherappandroidclient.classes.City;
 import com.example.weatherappandroidclient.classes.DetailedMeasurement;
 import com.example.weatherappandroidclient.classes.HelperFunctions;
 import com.example.weatherappandroidclient.classes.HourlyAdapter;
-import com.example.weatherappandroidclient.classes.HourlyForecast;
 import com.example.weatherappandroidclient.classes.HourlyForecastCard;
 import com.example.weatherappandroidclient.classes.NWSPoint;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -20,7 +20,6 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Typeface;
 import android.location.Location;
@@ -34,34 +33,28 @@ import android.text.SpannableString;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.SuperscriptSpan;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.ActionMenuView;
-import androidx.constraintlayout.solver.widgets.Helper;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
+import androidx.room.migration.Migration;
+import androidx.sqlite.db.SupportSQLiteDatabase;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.android.volley.RequestQueue;
@@ -70,7 +63,6 @@ import com.android.volley.toolbox.Volley;
 import com.example.weatherappandroidclient.classes.NWSLatestMeasurements;
 import com.example.weatherappandroidclient.classes.OnEventListener;
 import com.example.weatherappandroidclient.classes.VolleyServerRequest;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -93,7 +85,6 @@ import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
 import org.achartengine.chart.BarChart;
 import org.achartengine.model.RangeCategorySeries;
-import org.achartengine.model.SeriesSelection;
 import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
@@ -105,15 +96,12 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.time.OffsetTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class CurrentWeatherActivity extends AppCompatActivity {
 
@@ -158,6 +146,7 @@ public class CurrentWeatherActivity extends AppCompatActivity {
     final int buttonPressedColor = Color.parseColor("#9CD6F9");
     boolean todayButtonClicked = true;
     boolean dailyButtonClicked = false;
+    // TODO: Database for city lookup requires a link back to  https://simplemaps.com/data/us-cities. Be sure to include.
     // TODO: Cloudy sky image requires attribution, need to make a "Licenses" page
 
     @Override
@@ -200,6 +189,29 @@ public class CurrentWeatherActivity extends AppCompatActivity {
         background = findViewById(R.id.background);
         window = getWindowManager();
 
+
+//        Room.databaseBuilder(getApplicationContext(), CityDatabase.class, "CityDB")
+//                .addMigrations(new Migration(3, 4){
+//                    @Override
+//                    public void migrate(@NonNull SupportSQLiteDatabase database) {
+//                        database.execSQL("CREATE VIRTUAL TABLE IF NOT EXISTS 'citiesFts' USING FTS4('cityName', 'stateName', 'stateId', content='cities')");
+//                        database.execSQL("INSERT INTO citiesFts(citiesFts) VALUES ('rebuild')");
+//                    }
+//                })
+//                .build();
+
+        // Test query
+        HandlerThread handlerThread = new HandlerThread("MyHandlerThread");
+        handlerThread.start();
+        Looper looper = handlerThread.getLooper();
+        Handler handler = new Handler(looper);
+
+        handler.post(() -> {
+                    List<City> cities = DatabaseClient.getInstance(getApplicationContext()).getCitiesDatabase().CityDAO().searchByCityName("Santa Monica");
+                    for(City city : cities){
+                        Log.d("RESULT", city.toString());
+                    }
+                });
 
 
         ActionMenuView bottomBar = findViewById(R.id.toolbar_bottom);
@@ -760,7 +772,7 @@ public class CurrentWeatherActivity extends AppCompatActivity {
         Handler handler = new Handler(looper);
 
         handler.post(() -> {
-            NWSLatestMeasurements databaseResult = DatabaseClient.getInstance(getApplicationContext()).getAppDatabase().NWSLatestMeasurementsDAO().getMeasurement();
+            NWSLatestMeasurements databaseResult = DatabaseClient.getInstance(getApplicationContext()).getLatestMeasurementsDatabase().NWSLatestMeasurementsDAO().getMeasurement();
             if (databaseResult == null || ChronoUnit.MINUTES.between(OffsetDateTime.now(), databaseResult.getTimestamp()) < 30) {
                 if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     // TODO: Consider calling

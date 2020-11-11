@@ -1,0 +1,22 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+<!--    <item-->
+<!--        android:id="@+id/today"-->
+<!--        android:orderInCategory="100"-->
+<!--        app:showAsAction="always"-->
+<!--        android:icon="@drawable/ic_baseline_today_24"-->
+<!--        android:title="Today" />-->
+<!--    <item-->
+<!--        android:id="@+id/daily"-->
+<!--        android:orderInCategory="110"-->
+<!--        app:showAsAction="always"-->
+<!--        android:icon="@drawable/ic_baseline_calendar_today_24"-->
+<!--        android:title="Daily"/>-->
+
+    <item
+        android:id="@+id/toolbar_root"
+        android:title=""
+        app:actionLayout="@layout/bottom_toolbar_custom_layout"
+        app:showAsAction = "always"
+        />
+</menu>

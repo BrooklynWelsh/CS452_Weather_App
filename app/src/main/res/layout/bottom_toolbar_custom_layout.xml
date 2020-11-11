@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/colorPrimary">
+
+<ImageButton
+    android:id="@+id/todayIcon"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:src="@drawable/ic_baseline_calendar_today_24"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    android:layout_marginRight="120dp"
+    android:layout_marginTop="10dp"
+    android:background="?attr/actionBarItemBackground"
+    />
+
+    <TextView
+        android:id="@+id/todayText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Today/Hourly"
+        android:textColor="#FFFFFF"
+        android:layout_marginTop="4dp"
+        app:layout_constraintTop_toBottomOf="@id/todayIcon"
+        app:layout_constraintStart_toStartOf="@id/todayIcon"
+        app:layout_constraintEnd_toEndOf="@id/todayIcon"
+        />
+
+    <ImageButton
+        android:id="@+id/dailyIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_baseline_today_24"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginLeft="120dp"
+        android:layout_marginTop="10dp"
+        android:background="@color/colorPrimary"
+        />
+
+    <TextView
+        android:id="@+id/dailyText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Daily"
+        android:textColor="#FFFFFF"
+        android:layout_marginTop="4dp"
+        app:layout_constraintTop_toBottomOf="@id/dailyIcon"
+        app:layout_constraintStart_toStartOf="@id/dailyIcon"
+        app:layout_constraintEnd_toEndOf="@id/dailyIcon"
+        android:background="?attr/actionBarItemBackground"
+        />
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -22,6 +22,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.Typeface;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
@@ -35,16 +36,23 @@ import android.text.style.SuperscriptSpan;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.ActionMenuView;
 import androidx.constraintlayout.solver.widgets.Helper;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
@@ -52,6 +60,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -85,6 +94,7 @@ import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
 import org.achartengine.chart.BarChart;
 import org.achartengine.model.RangeCategorySeries;
+import org.achartengine.model.SeriesSelection;
 import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
@@ -106,7 +116,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class CurrentWeatherActivity extends Activity {
+public class CurrentWeatherActivity extends AppCompatActivity {
 
     private double latitude;
     private double longitude;
@@ -148,6 +158,21 @@ public class CurrentWeatherActivity extends Activity {
 
     // TODO: Cloudy sky image requires attribution, need to make a "Licenses" page
 
+    ActionMenuView bottomBar;
+    Menu bottomMenu;
+
+    public static ImageButton dailyButton;
+    public static TextView dailyText;
+    public static ImageButton todayButton;
+    public static TextView todayText;
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.bottom_toolbar, menu);
+        return true;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -180,6 +205,8 @@ public class CurrentWeatherActivity extends Activity {
         temp.setTextSize(getResources().getDimensionPixelSize(R.dimen.text_large));
         background = findViewById(R.id.background);
         window = getWindowManager();
+
+
 
         // We can just set the date now
         LocalDateTime currentDate = LocalDateTime.now();
@@ -391,6 +418,9 @@ public class CurrentWeatherActivity extends Activity {
                 int tempSize = propertiesNode.path("maxTemperature").path("values").size();
                 Iterator<JsonNode> minTempIterator = propertiesNode.path("minTemperature").path("values").elements();
                 XYMultipleSeriesRenderer mRenderer = new XYMultipleSeriesRenderer();
+                mRenderer.setXLabels(0);
+                final Typeface opensans = ResourcesCompat.getFont(getApplicationContext(), R.font.opensans_bold);
+                mRenderer.setTextTypeface(opensans);
                 RangeCategorySeries series =
                         new RangeCategorySeries("High low temperature");
                 int highestTemp = 0;
@@ -422,9 +452,7 @@ public class CurrentWeatherActivity extends Activity {
                     double[] panLimits = {0, 7.9, 0, 0};
                     mRenderer.setPanLimits(panLimits);
                     mRenderer.setBarWidth(HelperFunctions.dpToPx(15, getApplicationContext()));
-                    //       mRenderer.setInScroll(true);
-                    mRenderer.setLabelsTextSize(HelperFunctions.dpToPx(8, getApplicationContext()));
-                    renderer.setChartValuesTextSize(12);
+                    mRenderer.setLabelsTextSize(HelperFunctions.dpToPx(10, getApplicationContext()));
                     mRenderer.setAntialiasing(true);
                     mRenderer.setTextTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.opensans));
                     renderer.setShowLegendItem(false);
@@ -434,8 +462,9 @@ public class CurrentWeatherActivity extends Activity {
                     renderer.setChartValuesTextSize(HelperFunctions.dpToPx(9, getApplicationContext()));
                     mRenderer.setXLabelsColor(Color.WHITE);
                     mRenderer.setShowGridY(false);
-                    mRenderer.setShowGridY(false);
                     mRenderer.setChartTitle("Weekly High-Low Temperatures");
+                    int sideMargins = HelperFunctions.dpToPx(7, getApplicationContext());
+                    mRenderer.setMargins(new int[]{HelperFunctions.dpToPx(25, getApplicationContext()),sideMargins,0,sideMargins});
                     mRenderer.setChartTitleTextSize(HelperFunctions.dpToPx(14, getApplicationContext()));
                     GraphicalView chartView = ChartFactory.getRangeBarChartView(
                             getApplicationContext(), dataset,
@@ -451,50 +480,15 @@ public class CurrentWeatherActivity extends Activity {
                     renderer.setGradientStart(lowestTemp, Color.rgb(0, 57, 235));
                     renderer.setGradientStop(highestTemp + 5, Color.rgb(242, 96, 1));
                     renderer.setDisplayChartValues(true);
-
-                    // Create button to show more detailed daily forecast
-                    Button dailyForecastButton = new Button(CurrentWeatherActivity.this);
-                    dailyForecastButton.setId(View.generateViewId());
-                    ConstraintSet constraints = new ConstraintSet();
-                    view.addView(dailyForecastButton);
-                    constraints.clone(view);
-
-                    dailyForecastButton.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.opensans_bold));
-                    dailyForecastButton.setText("Detailed Daily Forecast");
-                    dailyForecastButton.setTypeface(ResourcesCompat.getFont(getBaseContext(), R.font.opensans_bold));
-                    dailyForecastButton.setTextAppearance(R.style.ButtonFontStyle);
-                    dailyForecastButton.setPaintFlags(Paint.UNDERLINE_TEXT_FLAG);
-                    dailyForecastButton.setBackgroundColor(Color.TRANSPARENT);
-                    dailyForecastButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            Intent intent = new Intent(getApplicationContext(), DailyForecastActivity.class);
-                            startActivity(intent);
-                        }
-                    });
-
-                    constraints.connect(dailyForecastButton.getId(), ConstraintSet.LEFT, chartView.getId(), ConstraintSet.LEFT, HelperFunctions.dpToPx(10, CurrentWeatherActivity.this));
-                    constraints.connect(dailyForecastButton.getId(), ConstraintSet.RIGHT, chartView.getId(), ConstraintSet.RIGHT, HelperFunctions.dpToPx(10, CurrentWeatherActivity.this));
-                    constraints.connect(dailyForecastButton.getId(), ConstraintSet.TOP, chartView.getId(), ConstraintSet.BOTTOM, HelperFunctions.dpToPx(10, CurrentWeatherActivity.this));
-                    constraints.applyTo(view);
                 }
             }
+
 
             @Override
             public void onFailure(Exception e) {
 
             }
         }, url);
-    }
-
-    private void startHourlyForecastActivity() {
-        Intent intent = new Intent(this, HourlyForecastActivity.class);
-        startActivity(intent);
-    }
-
-    private void startDailyForecastActivity() {
-        Intent intent = new Intent(this, DailyForecastActivity.class);
-        startActivity(intent);
     }
 
     @SuppressLint("MissingPermission")

@@ -161,8 +161,6 @@ public class DailyForecastActivity extends AppCompatActivity {
 
                     // TODO: check the "weather" node for short blurbs of weather events (scattered rain, chance of rain, etc.)
 
-                    // TODO: Add code to decide on a weather icon for each day
-
                     // Create a card view to contain each day
                     LayoutInflater inflater = getLayoutInflater();
                     ViewGroup parent = findViewById(R.id.cardConstraintLayout);

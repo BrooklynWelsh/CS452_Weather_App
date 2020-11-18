@@ -2,7 +2,9 @@ package com.example.weatherappandroidclient.classes;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -22,6 +24,8 @@ public class VolleyServerRequest {
     Context context;
     private OnEventListener<JsonNode> mCallBack;
     ObjectMapper mapper = new ObjectMapper();
+    final int TIMEOUT_LENGTH_MS = 9000;
+    final int MAX_RETRIES = 3;
 
     public  VolleyServerRequest(Context context, OnEventListener callback, String url){
         this.context = context;
@@ -29,48 +33,6 @@ public class VolleyServerRequest {
         setGetRequest(url);
     }
 
-//    public void setGetRequest(String url){
-//
-//        RequestQueue queue = Volley.newRequestQueue(this.context);
-//
-//        StringRequest postRequest = new StringRequest(Request.Method.GET, url,
-//                new Response.Listener<String>()
-//                {
-//                    @Override
-//                    public void onResponse(String response) {
-//                        // response
-//                        JsonNode json;
-//                        String stationsURL = null;
-//                        try {
-//                            json = mapper.readTree(response);
-//                            JsonNode propertyNode = json.path("properties");					// Properties field contains the forecast URLs (and more)
-//                            JsonNode forecastNode = propertyNode.path("observationStations");	// First get the forecast URL string
-//                            stationsURL = forecastNode.textValue();				// Convert to URL object and add to array
-//                        } catch (JsonProcessingException e) {
-//                            e.printStackTrace();
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        }
-//                        Log.d("Response", response);
-//                        try {
-//                            mCallBack.onSuccess(stationsURL);
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                },
-//                new Response.ErrorListener()
-//                {
-//                    @Override
-//                    public void onErrorResponse(VolleyError error) {
-//                        // error
-//                        Log.d("Error.Response", error.toString());
-//                        mCallBack.onFailure(error);
-//                    }
-//                }
-//        );
-//        queue.add(postRequest);
-//    }
 
     public void setGetRequest(String url){
 
@@ -82,7 +44,6 @@ public class VolleyServerRequest {
                     public void onResponse(String response) {
                         // response
                         JsonNode json = null;
-                        String stationsURL = null;
                         try {
                             json = mapper.readTree(response);
                         } catch (JsonProcessingException e) {
@@ -102,10 +63,11 @@ public class VolleyServerRequest {
                     public void onErrorResponse(VolleyError error) {
                         // error
                         Log.d("Error.Response", error.toString());
-                        mCallBack.onFailure(error);
+                        Toast.makeText(context, "There was a problem getting info from NWS. Please refresh.", Toast.LENGTH_LONG);
                     }
                 }
         );
+        postRequest.setRetryPolicy(new DefaultRetryPolicy(TIMEOUT_LENGTH_MS, MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         queue.add(postRequest);
     }
 }

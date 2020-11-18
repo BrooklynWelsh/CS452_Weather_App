@@ -1,6 +1,8 @@
 package com.example.weatherappandroidclient;
 
 
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.RetryPolicy;
 import com.example.database.DatabaseClient;
 import com.example.database.OffsetDateTimeConverter;
 import com.example.weatherappandroidclient.classes.DetailedMeasurement;
@@ -49,6 +51,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -306,8 +309,6 @@ public class CurrentWeatherActivity extends AppCompatActivity {
 
     public void getPointJSON(String url, boolean needNewMeasurements) throws MalformedURLException {
         // For current measurements, we want to get the "observationStations" field and return the URL
-        RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
-
         VolleyServerRequest stringRequest = new VolleyServerRequest(getApplicationContext(), new OnEventListener() {
             @Override
             public void onSuccess(Object object) throws IOException {
@@ -331,9 +332,7 @@ public class CurrentWeatherActivity extends AppCompatActivity {
             public void onFailure(Exception e) {
 
             }
-        }, url);
-
-    }
+        }, url); }
 
     public void getMeasurementsURL(String url) throws IOException {
         VolleyServerRequest stringRequest = new VolleyServerRequest(getApplicationContext(), new OnEventListener() {
@@ -529,7 +528,6 @@ public class CurrentWeatherActivity extends AppCompatActivity {
         // For now we'll get hourly forecast data for rest of today and tomorrow
         // So, while the timestamp isn't from two days from now, create a new measurement object
 
-        // TODO: convert to horizontal cards and vertical scroll view (using RecyclerView?)
         // Use https://api.weather.gov/gridpoints/RNK/101,78 for more data, such as precip probability
         LocalDate currentDate = LocalDate.now();    // Get current date
         boolean pastLimit = false;
@@ -707,7 +705,7 @@ public class CurrentWeatherActivity extends AppCompatActivity {
 
         handler.post(() -> {
             NWSLatestMeasurements databaseResult = DatabaseClient.getInstance(getApplicationContext()).getAppDatabase().NWSLatestMeasurementsDAO().getMeasurement();
-            if (databaseResult == null || ChronoUnit.MINUTES.between(OffsetDateTime.now(), databaseResult.getTimestamp()) < 30) {
+            if (databaseResult == null || ChronoUnit.MINUTES.between(OffsetDateTime.now(), databaseResult.getTimestamp()) < 1) {
                 if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     // TODO: Consider calling
                     //    ActivityCompat#requestPermissions
@@ -730,7 +728,7 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(Location location) {
                         // Got last known location. In some rare situations this can be null.
-                        if (location != null || ((int)location.getLongitude() == 0 && (int)location.getLatitude() == 0)) {
+                        if (location != null || ((int)location.getLongitude() != 0 && (int)location.getLatitude() != 0)) {
                             pointURL = "https://api.weather.gov/points/" + location.getLatitude() + "," + location.getLongitude();
                             //getForecastJSON(pointObject.getForecast());                 // Get some forecast data from the forecast (not hourly) URL
                             //getHourlyForecastJSON(pointObject.getGridPointURL());       // Get data for hourly forecast card ("gridpoints" endpoint actually has the most detailed forecast...)

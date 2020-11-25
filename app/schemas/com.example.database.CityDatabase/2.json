@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 2,
-    "identityHash": "2ee118260c0babd88ba1e375cd947923",
+    "identityHash": "5c0b26068ea542d6d04a3d627829b9c0",
     "entities": [
       {
         "tableName": "cities",
@@ -122,11 +122,11 @@
       },
       {
         "tableName": "citiesFts",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `city` TEXT, `state_name` TEXT, `state_id` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`rowid` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `city` TEXT, `state_name` TEXT, `state_id` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
-            "columnName": "id",
+            "columnName": "rowid",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -151,7 +151,7 @@
         ],
         "primaryKey": {
           "columnNames": [
-            "id"
+            "rowid"
           ],
           "autoGenerate": true
         },
@@ -161,7 +161,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"2ee118260c0babd88ba1e375cd947923\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"5c0b26068ea542d6d04a3d627829b9c0\")"
     ]
   }
 }

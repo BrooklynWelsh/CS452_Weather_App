@@ -2,6 +2,7 @@ package com.example.weatherappandroidclient;
 
 
 import com.example.database.CityDatabase;
+import com.example.database.DatabaseHelper;
 import com.example.database.LatestMeasurementsDatabase;
 import com.example.database.DatabaseClient;
 import com.example.weatherappandroidclient.classes.City;
@@ -19,6 +20,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Typeface;
@@ -200,19 +203,32 @@ public class CurrentWeatherActivity extends AppCompatActivity {
 //                })
 //                .build();
 
-        // Test query
-        HandlerThread handlerThread = new HandlerThread("MyHandlerThread");
-        handlerThread.start();
-        Looper looper = handlerThread.getLooper();
-        Handler handler = new Handler(looper);
+        // TODO: Need to create DB in to apply changes
 
-        handler.post(() -> {
-                    List<City> cities = DatabaseClient.getInstance(getApplicationContext()).getCitiesDatabase().CityDAO().searchByCityName("Santa Monica");
-                    for(City city : cities){
-                        Log.d("RESULT", city.toString());
-                    }
-                });
+        DatabaseHelper helper = new DatabaseHelper(this, null, null, 1);
+        try {
+            helper.createDatabase();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
+        SQLiteDatabase db = SQLiteDatabase.openDatabase("data/data/com.example.weatherappandroidclient/databases/CityDB.sqlite3",null,SQLiteDatabase.OPEN_READONLY);
+
+
+        
+//        // Test query
+//        HandlerThread handlerThread = new HandlerThread("MyHandlerThread");
+//        handlerThread.start();
+//        Looper looper = handlerThread.getLooper();
+//        Handler handler = new Handler(looper);
+//
+//        handler.post(() -> {
+//                    List<City> cities = DatabaseClient.getInstance(getApplicationContext()).getCitiesDatabase().CityDAO().searchByCityName("Santa Monica");
+//                    for(City city : cities){
+//                        Log.d("RESULT", city.toString());
+//                    }
+//                });
+//
 
         ActionMenuView bottomBar = findViewById(R.id.toolbar_bottom);
         Menu bottomMenu = bottomBar.getMenu();

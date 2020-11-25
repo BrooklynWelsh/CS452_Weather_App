@@ -35,4 +35,5 @@
 
     <!-- Strings for the search bar -->
     <string name="search_hint">Enter a city or address</string>
+    <string name="search_title">Search by City</string>
 </resources>

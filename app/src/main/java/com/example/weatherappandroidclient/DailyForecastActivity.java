@@ -13,6 +13,7 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 
@@ -30,7 +31,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class DailyForecastActivity extends Activity {
+public class DailyForecastActivity extends AppCompatActivity {
 
     public static String pointURL = CurrentWeatherActivity.pointObject.getGridPointURL();    // Get pointURL from previous activity
     private TextView forecastText;

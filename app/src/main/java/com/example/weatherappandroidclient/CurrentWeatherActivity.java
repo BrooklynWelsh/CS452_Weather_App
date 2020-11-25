@@ -15,6 +15,9 @@ import com.example.weatherappandroidclient.classes.NWSPoint;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.SearchManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -39,6 +42,7 @@ import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
@@ -48,6 +52,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.ActionMenuView;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -155,9 +161,16 @@ public class CurrentWeatherActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.bottom_toolbar, menu);
+        inflater.inflate(R.menu.top_toolbar, menu);
+
+        // Instantiate search view and associate it with the SearchActivity class
+        SearchManager searchManager =   (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        SearchView searchView =         (SearchView) menu.findItem(R.id.search).getActionView();
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(new ComponentName(this, SearchActivity.class)));
+
         return true;
     }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -187,6 +200,11 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                 }
         );
 
+        // Set toolbar and disable app title
+        Toolbar toolbar = findViewById(R.id.top_toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
+
         temp.setTypeface(ResourcesCompat.getFont(this, R.font.opensans_bold));
         temp.setTextSize(getResources().getDimensionPixelSize(R.dimen.text_large));
         background = findViewById(R.id.background);
@@ -205,7 +223,7 @@ public class CurrentWeatherActivity extends AppCompatActivity {
 
         // TODO: Need to create DB in to apply changes
 
-        DatabaseHelper helper = new DatabaseHelper(this, null, null, 1);
+        DatabaseHelper helper = new DatabaseHelper(this);
         try {
             helper.createDatabase();
         } catch (IOException e) {

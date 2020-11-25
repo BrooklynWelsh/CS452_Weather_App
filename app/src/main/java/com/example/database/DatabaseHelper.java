@@ -18,24 +18,35 @@ import androidx.annotation.Nullable;
 
 public class DatabaseHelper extends SQLiteOpenHelper
 {
+    private static DatabaseHelper instance = null;
     private static String TAG = "DataBaseHelper"; // Tag just for the LogCat window
     //destination path (location) of our database on device
     private static String DB_PATH = "";
     private static String DB_NAME ="CityDB.sqlite3";// Database name
+    private static int DB_VERSION = 1;
     private SQLiteDatabase mDataBase;
-    private Context mContext;
+    private Context context;
 
-    public DatabaseHelper(@Nullable Context context, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version) {
-        super(context, name, factory, version);
-        mContext = context;
+    public DatabaseHelper( Context context) {
+        super(context, DB_NAME, null, DB_VERSION);
+        this.context = context;
+    }
+
+    public static DatabaseHelper getHelper(Context context){
+        if(instance == null)    instance = new DatabaseHelper(context.getApplicationContext());
+        return instance;
+     }
+
+    public SQLiteDatabase getDatabase() {
+        return mDataBase;
     }
 
     public void createDatabase() throws IOException {
         //If database not exists copy it from the assets
-        File dbFile = mContext.getDatabasePath(DB_NAME);
+        File dbFile = context.getDatabasePath(DB_NAME);
         if (!dbFile.exists()) {
             try {
-                SQLiteDatabase checkDB = mContext.openOrCreateDatabase(DB_NAME, mContext.MODE_PRIVATE, null);
+                SQLiteDatabase checkDB = context.openOrCreateDatabase(DB_NAME, context.MODE_PRIVATE, null);
                 if (checkDB != null) {
                     checkDB.close();
                 }
@@ -56,9 +67,9 @@ public class DatabaseHelper extends SQLiteOpenHelper
     //Copy the database from assets 
     private void copyDatabase(File dbFile) throws IOException
     {
-        Log.d("ASSETS", Arrays.toString(mContext.getAssets().list("")));
-        InputStream mInput = mContext.getAssets().open(DB_NAME);
-        File outputFile = mContext.getDatabasePath(DB_NAME);
+        Log.d("ASSETS", Arrays.toString(context.getAssets().list("")));
+        InputStream mInput = context.getAssets().open(DB_NAME);
+        File outputFile = context.getDatabasePath(DB_NAME);
         OutputStream mOutput = new FileOutputStream(outputFile);
         byte[] mBuffer = new byte[1024];
         int mLength;

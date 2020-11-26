@@ -3,11 +3,9 @@ package com.example.weatherappandroidclient.classes;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -20,12 +18,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.transition.AutoTransition;
 import androidx.transition.TransitionManager;
 
-import com.example.weatherappandroidclient.CurrentWeatherActivity;
 import com.example.weatherappandroidclient.R;
 
-import org.checkerframework.checker.units.qual.Current;
-
-import java.lang.reflect.Field;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 

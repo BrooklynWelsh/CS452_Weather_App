@@ -221,177 +221,165 @@ public class CurrentWeatherActivity extends AppCompatActivity {
 //                })
 //                .build();
 
-        // TODO: Need to create DB in to apply changes
-
-        DatabaseHelper helper = new DatabaseHelper(this);
-        try {
-            helper.createDatabase();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        SQLiteDatabase db = SQLiteDatabase.openDatabase("data/data/com.example.weatherappandroidclient/databases/CityDB.sqlite3",null,SQLiteDatabase.OPEN_READONLY);
-
-
-        
-//        // Test query
-//        HandlerThread handlerThread = new HandlerThread("MyHandlerThread");
-//        handlerThread.start();
-//        Looper looper = handlerThread.getLooper();
-//        Handler handler = new Handler(looper);
-//
-//        handler.post(() -> {
-//                    List<City> cities = DatabaseClient.getInstance(getApplicationContext()).getCitiesDatabase().CityDAO().searchByCityName("Santa Monica");
-//                    for(City city : cities){
-//                        Log.d("RESULT", city.toString());
-//                    }
-//                });
-//
-
-        ActionMenuView bottomBar = findViewById(R.id.toolbar_bottom);
-        Menu bottomMenu = bottomBar.getMenu();
-
-        getMenuInflater().inflate(R.menu.bottom_toolbar, bottomMenu);
-
-        // Initialize toolbar buttons
-        ImageButton dailyButton = bottomBar.findViewById(R.id.dailyIcon);
-        TextView dailyText = bottomBar.findViewById(R.id.dailyText);
-        ImageButton todayButton = bottomBar.findViewById(R.id.todayIcon);
-        TextView todayText = bottomBar.findViewById(R.id.todayText);
-
-        todayButton.getDrawable().setTint(buttonPressedColor);
-        todayText.setTextColor(buttonPressedColor);
-
-        // Listener for home/hourly button
-        todayButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d("CLICK", "THE TODAY BUTTON WAS CLICKED");
-                if(dailyButtonClicked == true) {                       // Only do anything if user is on another activity (i.e. is on the daily forecast)
-                    todayButtonClicked = true;
-                    todayButton.getDrawable().setTint(buttonPressedColor);
-                    todayText.setTextColor(buttonPressedColor);
-
-                    // Reset the dailyButton's attributes
-                    dailyButton.getDrawable().setTint(Color.WHITE);
-                    dailyText.setTextColor(Color.WHITE);
-                    dailyButtonClicked = false;
-                }
+        if(getIntent().getExtras() != null) handleIntent(getIntent());
+        else {
+            DatabaseHelper helper = new DatabaseHelper(this);
+            try {
+                helper.createDatabase();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        });
 
-        // Listener for daily forecast button
-        dailyButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d("CLICK", "THE DAILY BUTTON WAS CLICKED");
-                if(todayButtonClicked == true) {
-                    dailyButtonClicked = true;
-                    dailyButton.getDrawable().setTint(buttonPressedColor);
-                    dailyText.setTextColor(buttonPressedColor);
+            SQLiteDatabase db = SQLiteDatabase.openDatabase("data/data/com.example.weatherappandroidclient/databases/CityDB.sqlite3", null, SQLiteDatabase.OPEN_READONLY);
 
-                    // Reset the todayButton's attributes
-                    todayButton.getDrawable().setTint(Color.WHITE);
-                    todayText.setTextColor(Color.WHITE);
-                    todayButtonClicked = false;
-                }
-            }
-        });
+            ActionMenuView bottomBar = findViewById(R.id.toolbar_bottom);
+            Menu bottomMenu = bottomBar.getMenu();
 
-        // We can just set the date now
-        LocalDateTime currentDate = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, LLL dd hh:mm a");
-        String dateString = currentDate.format(formatter);
-        date.setText(dateString);
+            getMenuInflater().inflate(R.menu.bottom_toolbar, bottomMenu);
 
-        // Get screen width and height (backwards compatible if else statement)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            window.getDefaultDisplay().getSize(size);
-            screenWidth = size.x;
-            screenHeight = size.y;
-        } else {
-            Display d = window.getDefaultDisplay();
-            screenWidth = d.getWidth();
-            screenHeight = d.getHeight();
-        }
+            // Initialize toolbar buttons
+            ImageButton dailyButton = bottomBar.findViewById(R.id.dailyIcon);
+            TextView dailyText = bottomBar.findViewById(R.id.dailyText);
+            ImageButton todayButton = bottomBar.findViewById(R.id.todayIcon);
+            TextView todayText = bottomBar.findViewById(R.id.todayText);
 
-        // Use picasso library to resize background image appropriately (avoid bitmap too large errors)
-        Picasso.get().load(R.drawable.weather_app_background).resize(screenWidth, screenHeight).onlyScaleDown().into(background);
+            todayButton.getDrawable().setTint(buttonPressedColor);
+            todayText.setTextColor(buttonPressedColor);
 
-        // Module needed for Jackson to construct Java OffsetDateTime fields
-        mapper.registerModule(new JavaTimeModule());
+            // Listener for home/hourly button
+            todayButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.d("CLICK", "THE TODAY BUTTON WAS CLICKED");
+                    if (dailyButtonClicked == true) {                       // Only do anything if user is on another activity (i.e. is on the daily forecast)
+                        todayButtonClicked = true;
+                        todayButton.getDrawable().setTint(buttonPressedColor);
+                        todayText.setTextColor(buttonPressedColor);
 
-        // First we need to get GPS coordinates
-        // So make sure GPS is enabled. If not, show an alert.
-        final LocationManager manager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
-        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            buildAlertMessageNoGps();
-        }
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
-        }
-
-
-        mCallback = new LocationCallback() {
-            //This callback is where we get "streaming" location updates. We can check things like accuracy to determine whether
-            //this latest update should replace our previous estimate.
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                if (locationResult == null) {
-                    Log.d("LOCATION ERROR: ", "locationResult null");
-                    return;
-                }
-                Log.d("LOCATION UPDATE: ", "requestLocationUpdates has received a new location. Calling \"onLocationResult\" callback.");
-                Log.d(TAG, "received " + locationResult.getLocations().size() + " locations");
-                for (Location loc : locationResult.getLocations()) {
-                    latitude = loc.getLatitude();
-                    longitude = loc.getLongitude();
-
-                    // Now we can make request to NWS API
-                    pointURL = "https://api.weather.gov/points/" + latitude + "," + longitude;
-                    try {
-                        getPointJSON(pointURL, true);              // First get stations endpoint URL from our existing point URL
-                        //   URL latestMeasurementsURL = getMeasurementsURL(stationsURL);    // Now, from the stations endpoint, we can get the first station URL from the "observationStations" field
-                        // note that we append "/observations/latest" to that station URL to get latest measurements
-                        //NWSLatestMeasurements measurements = getLatestMeasurements(latestMeasurementsURL);
-                        //info.setText(measurements.toString());
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                        // Reset the dailyButton's attributes
+                        dailyButton.getDrawable().setTint(Color.WHITE);
+                        dailyText.setTextColor(Color.WHITE);
+                        dailyButtonClicked = false;
                     }
                 }
-            }
+            });
 
-            @Override
-            public void onLocationAvailability(LocationAvailability locationAvailability) {
-                Log.d(TAG, "locationAvailability is " + locationAvailability.isLocationAvailable());
-                super.onLocationAvailability(locationAvailability);
-            }
-        };
+            // Listener for daily forecast button
+            dailyButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.d("CLICK", "THE DAILY BUTTON WAS CLICKED");
+                    if (todayButtonClicked == true) {
+                        dailyButtonClicked = true;
+                        dailyButton.getDrawable().setTint(buttonPressedColor);
+                        dailyText.setTextColor(buttonPressedColor);
 
-        //permissions
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            //request permission.
-            //However check if we need to show an explanatory UI first
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
-                showRationale();
+                        // Reset the todayButton's attributes
+                        todayButton.getDrawable().setTint(Color.WHITE);
+                        todayText.setTextColor(Color.WHITE);
+                        todayButtonClicked = false;
+                    }
+                }
+            });
+
+            // We can just set the date now
+            LocalDateTime currentDate = LocalDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, LLL dd hh:mm a");
+            String dateString = currentDate.format(formatter);
+            date.setText(dateString);
+
+            // Get screen width and height (backwards compatible if else statement)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                window.getDefaultDisplay().getSize(size);
+                screenWidth = size.x;
+                screenHeight = size.y;
             } else {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_NETWORK_STATE}, 2);
+                Display d = window.getDefaultDisplay();
+                screenWidth = d.getWidth();
+                screenHeight = d.getHeight();
             }
-        } else {
-            //we already have the permissions.
-            getLocation();
-        }
 
+            // Use picasso library to resize background image appropriately (avoid bitmap too large errors)
+            Picasso.get().load(R.drawable.weather_app_background).resize(screenWidth, screenHeight).onlyScaleDown().into(background);
+
+            // Module needed for Jackson to construct Java OffsetDateTime fields
+            mapper.registerModule(new JavaTimeModule());
+
+            // First we need to get GPS coordinates
+            // So make sure GPS is enabled. If not, show an alert.
+            final LocationManager manager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+            if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                buildAlertMessageNoGps();
+            }
+
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+            }
+
+
+            mCallback = new LocationCallback() {
+                //This callback is where we get "streaming" location updates. We can check things like accuracy to determine whether
+                //this latest update should replace our previous estimate.
+                @Override
+                public void onLocationResult(LocationResult locationResult) {
+                    if (locationResult == null) {
+                        Log.d("LOCATION ERROR: ", "locationResult null");
+                        return;
+                    }
+                    Log.d("LOCATION UPDATE: ", "requestLocationUpdates has received a new location. Calling \"onLocationResult\" callback.");
+                    Log.d(TAG, "received " + locationResult.getLocations().size() + " locations");
+                    for (Location loc : locationResult.getLocations()) {
+                        latitude = loc.getLatitude();
+                        longitude = loc.getLongitude();
+
+                        // Now we can make request to NWS API
+                        pointURL = "https://api.weather.gov/points/" + latitude + "," + longitude;
+                        try {
+                            getPointJSON(pointURL, true);              // First get stations endpoint URL from our existing point URL
+                            //   URL latestMeasurementsURL = getMeasurementsURL(stationsURL);    // Now, from the stations endpoint, we can get the first station URL from the "observationStations" field
+                            // note that we append "/observations/latest" to that station URL to get latest measurements
+                            //NWSLatestMeasurements measurements = getLatestMeasurements(latestMeasurementsURL);
+                            //info.setText(measurements.toString());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+                @Override
+                public void onLocationAvailability(LocationAvailability locationAvailability) {
+                    Log.d(TAG, "locationAvailability is " + locationAvailability.isLocationAvailable());
+                    super.onLocationAvailability(locationAvailability);
+                }
+            };
+
+            //permissions
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                //request permission.
+                //However check if we need to show an explanatory UI first
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
+                    showRationale();
+                } else {
+                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_NETWORK_STATE}, 2);
+                }
+            } else {
+                //we already have the permissions.
+                getLocation();
+            }
+        }
+    }
+
+    private void handleIntent(Intent intent){
+        // Given the cityName from intent extras, query the fts database for the coordinates to the city that matches
     }
 
     public void getPointJSON(String url, boolean needNewMeasurements) throws MalformedURLException {

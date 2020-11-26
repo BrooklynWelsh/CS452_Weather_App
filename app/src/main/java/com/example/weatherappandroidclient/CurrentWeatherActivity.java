@@ -210,17 +210,6 @@ public class CurrentWeatherActivity extends AppCompatActivity {
         background = findViewById(R.id.background);
         window = getWindowManager();
 
-
-//        Room.databaseBuilder(getApplicationContext(), CityDatabase.class, "CityDB")
-//                .addMigrations(new Migration(3, 4){
-//                    @Override
-//                    public void migrate(@NonNull SupportSQLiteDatabase database) {
-//                        database.execSQL("CREATE VIRTUAL TABLE IF NOT EXISTS 'citiesFts' USING FTS4('cityName', 'stateName', 'stateId', content='cities')");
-//                        database.execSQL("INSERT INTO citiesFts(citiesFts) VALUES ('rebuild')");
-//                    }
-//                })
-//                .build();
-
         if(getIntent().getExtras() != null) handleIntent(getIntent());
         else {
             DatabaseHelper helper = new DatabaseHelper(this);
@@ -841,7 +830,8 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                         }
                     }
                 });
-                // TODO: App doesn't seem to ask for GPS permissions, permenantly broken if user turns on the app without GPS on! (Keeps returning 0.0/0.0 coordinates).
+                // TODO: App doesn't seem to ask for GPS permissions, permanently broken if user turns on the app without GPS on! (Keeps returning 0.0/0.0 coordinates) (This may be
+                //  fixed? Needs more testing!).
                 //updateLatestMeasurementViews(databaseResult);
             }
         });

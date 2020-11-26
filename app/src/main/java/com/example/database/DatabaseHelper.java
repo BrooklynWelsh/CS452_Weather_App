@@ -13,6 +13,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
@@ -33,7 +34,15 @@ public class DatabaseHelper extends SQLiteOpenHelper
     }
 
     public static DatabaseHelper getHelper(Context context){
-        if(instance == null)    instance = new DatabaseHelper(context.getApplicationContext());
+        if(instance == null)    {
+            instance = new DatabaseHelper(context.getApplicationContext());
+            try {
+                instance.createDatabase();
+            } catch (IOException e) {
+                Toast.makeText(context, "We encountered a problem when querying the database.", Toast.LENGTH_LONG);
+                return null;
+            }
+        }
         return instance;
      }
 
@@ -55,6 +64,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
                 throw new RuntimeException("Error creating source database", e);
             }
             }
+        mDataBase = SQLiteDatabase.openOrCreateDatabase(dbFile, null);
         }
     //Check that the database exists here: /data/data/your package/databases/Da Name 
     private boolean checkDataBase()

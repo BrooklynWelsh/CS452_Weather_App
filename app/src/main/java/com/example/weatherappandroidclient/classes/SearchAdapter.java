@@ -40,42 +40,41 @@ public class SearchAdapter  extends
     @Override
     public void onBindViewHolder(@NonNull SearchAdapter.ViewHolder holder, int position) {
         SearchResultCard thisCard = cards.get(position);
+        holder.searchResultObject=cards.get(position);
 
         TextView thisCityName = holder.cityName;
-        TextView thisCityASCII = holder.cityNameASCII;
-        thisCityName.setText(thisCard.getCityName());
-        thisCityASCII.setText(thisCard.getCityNameASCII());
+        thisCityName.setText(thisCityName.getContext().getString(R.string.search_city_state_info,thisCard.getCityName(),thisCard.getStateID()));
+    }
+
+    public SearchResultCard getItem(int position){
+        return cards.get(position);
     }
 
     @Override
     public int getItemCount() {
-        return 0;
+        return cards.size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder{
 
+        public SearchResultCard searchResultObject;
         public TextView cityName;
-        public TextView cityNameASCII;
         public CardView resultCard;
-        public String state;
-        public String stateID;
-        public double longitude;
-        public double latitude;
-        public int zip;
 
         public ViewHolder(View itemView){
             super(itemView);
 
             cityName = (TextView) itemView.findViewById(R.id.cityName);
-            resultCard = (CardView) itemView.findViewById(R.id.search);
+            resultCard = (CardView) itemView.findViewById(R.id.searchCardView);
 
             // Set on click result for the search result
             resultCard.setOnClickListener(new View.OnClickListener() {
 
                 @Override
                 public void onClick(View v) {
+                    // Start CurrentWeatherActivity and pass in the clicked search result object
                     Intent intent = new Intent(v.getContext(), CurrentWeatherActivity.class);
-                    intent.putExtra(CITY_SEARCH, cityName + ";" + stateID + ";" + zip + ";" + latitude + ";" + longitude);
+                    intent.putExtra("SearchResult",searchResultObject);
                     v.getContext().startActivity(intent);
                 }
             });

@@ -48,6 +48,7 @@ import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -71,6 +72,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 import com.example.weatherappandroidclient.classes.NWSLatestMeasurements;
 import com.example.weatherappandroidclient.classes.OnEventListener;
+import com.example.weatherappandroidclient.classes.SearchResultCard;
 import com.example.weatherappandroidclient.classes.VolleyServerRequest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -150,11 +152,12 @@ public class CurrentWeatherActivity extends AppCompatActivity {
     public static JsonNode detailedForecastNode;
     public static ArrayList<DetailedMeasurement> dailyForecastMeasuresList = new ArrayList<>();
     public static JsonNode gridpointForecastNode;
-    ConstraintLayout view;
+    ConstraintLayout graphView;
 
     final int buttonPressedColor = Color.parseColor("#9CD6F9");
     boolean todayButtonClicked = true;
     boolean dailyButtonClicked = false;
+    boolean onResumeCalledAlready = false;
     // TODO: Database for city lookup requires a link back to  https://simplemaps.com/data/us-cities. Be sure to include.
     // TODO: Cloudy sky image requires attribution, need to make a "Licenses" page
 
@@ -187,15 +190,27 @@ public class CurrentWeatherActivity extends AppCompatActivity {
         cloudDescription = findViewById(R.id.cloudDescription);
         layout = findViewById(R.id.mainLayout);
         hourlyRecyclerView = findViewById(R.id.hourlyRecyclerView);
-        view = findViewById(R.id.graphView);
+        graphView = findViewById(R.id.graphView);
         swipeRefresh = findViewById(R.id.swiperefresh);
 
         swipeRefresh.setOnRefreshListener(
                 new SwipeRefreshLayout.OnRefreshListener() {
                     @Override
                     public void onRefresh() {
-                        startLocationUpdates();
-                        swipeRefresh.setRefreshing(false);
+                        // TODO: This crashes if user is on this activity from a search result
+                        if(getIntent().getExtras() == null) {
+                            startLocationUpdates();
+                            swipeRefresh.setRefreshing(false);
+                        }
+                        else{
+                            // Else we are here from a search result, they probably want to update that cities information, no need for location updates.
+                            try {
+                                getPointJSON(pointURL,true);
+                                swipeRefresh.setRefreshing(false);
+                            } catch (MalformedURLException e) {
+                                Toast.makeText(getApplicationContext(),"There was a problem updating the weather info. Please try again.",Toast.LENGTH_LONG);
+                            }
+                        }
                     }
                 }
         );
@@ -368,7 +383,14 @@ public class CurrentWeatherActivity extends AppCompatActivity {
     }
 
     private void handleIntent(Intent intent){
-        // Given the cityName from intent extras, query the fts database for the coordinates to the city that matches
+        // Given the SearchResult object from intent extras, get the coordinates and use that for NWS REST API calls
+        SearchResultCard result = (SearchResultCard) intent.getSerializableExtra("SearchResult");
+        pointURL = "https://api.weather.gov/points/" + result.getLat() + "," + result.getLng();
+        try {
+            getPointJSON(pointURL, true);
+        } catch (MalformedURLException e) {
+            Toast.makeText(this, "There was a problem getting results from the NWS. Please try the search again.", Toast.LENGTH_LONG);
+        }
     }
 
     public void getPointJSON(String url, boolean needNewMeasurements) throws MalformedURLException {
@@ -505,7 +527,7 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                     mRenderer.addXTextLabel(i, day.toString());
                 }
 
-                if(view.getChildAt(1) == null) {    // A check to make sure we haven't already drawn the graph
+                if(graphView.getChildAt(1) == null) {    // A check to make sure we haven't already drawn the graph
                     XYMultipleSeriesDataset dataset = new XYMultipleSeriesDataset();
 
                     dataset.addSeries(series.toXYSeries());
@@ -538,11 +560,11 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                             mRenderer, BarChart.Type.DEFAULT);
                     chartView.setId(View.generateViewId());
                     //ConstraintLayout view = findViewById(R.id.graphView);
-                    view.setId(View.generateViewId());
+                    graphView.setId(View.generateViewId());
                     chartView.setMinimumHeight(HelperFunctions.dpToPx(200, getApplicationContext()));
                     chartView.setMinimumWidth(HelperFunctions.dpToPx(200, getApplicationContext()));
-                    view.addView(chartView);
-                    view.removeView(findViewById(R.id.progress_bar));
+                    graphView.addView(chartView);
+                    graphView.removeView(findViewById(R.id.high_low_progress_bar));
                     renderer.setGradientEnabled(true);
                     renderer.setGradientStart(lowestTemp, Color.rgb(0, 57, 235));
                     renderer.setGradientStop(highestTemp + 5, Color.rgb(242, 96, 1));
@@ -714,6 +736,7 @@ public class CurrentWeatherActivity extends AppCompatActivity {
         hourlyRecyclerView.setAdapter(adapter);
 
         adapter.notifyDataSetChanged();
+       // layout.removeView(findViewById(R.id.hourly_progress_bar));
     }
 
     public void updateLatestMeasurementViews(NWSLatestMeasurements measurementObject){
@@ -770,72 +793,78 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                 break;
 
         }
-        DrawableCompat.setTint(cloudCoverIcon.getDrawable(), Color.WHITE);
+        ConstraintLayout todayLayout = findViewById(R.id.today_constraint_layout);
+        TextView glanceTitle = findViewById(R.id.glanceTitle);
+        glanceTitle.setText("Today at a Glance");
+        todayLayout.removeView(findViewById(R.id.today_progress_bar));
     }
 
     @Override
     protected void onResume() {
-        // TODO: Graph draws a double of itself when navigated to from antoher activity via back button.
+        // TODO: Graph draws a double of itself when navigated to from another activity via back button.
         super.onResume();
-        HandlerThread handlerThread = new HandlerThread("MyHandlerThread");
-        handlerThread.start();
-        Looper looper = handlerThread.getLooper();
-        Handler handler = new Handler(looper);
+        if(onResumeCalledAlready == false){
+            onResumeCalledAlready = true;
+            if(getIntent().getExtras() != null) handleIntent(getIntent());
+            else {
+                HandlerThread handlerThread = new HandlerThread("MyHandlerThread");
+                handlerThread.start();
+                Looper looper = handlerThread.getLooper();
+                Handler handler = new Handler(looper);
 
-        handler.post(() -> {
-            NWSLatestMeasurements databaseResult = DatabaseClient.getInstance(getApplicationContext()).getLatestMeasurementsDatabase().NWSLatestMeasurementsDAO().getMeasurement();
-            if (databaseResult == null || ChronoUnit.MINUTES.between(OffsetDateTime.now(), databaseResult.getTimestamp()) < 30) {
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    // TODO: Consider calling
-                    //    ActivityCompat#requestPermissions
-                    // here to request the missing permissions, and then overriding
-                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                    //                                          int[] grantResults)
-                    // to handle the case where the user grants the permission. See the documentation
-                    // for ActivityCompat#requestPermissions for more details.
-                    return;
-                }
-                else {
-                    Log.d("LOCATION REQUEST: ", "Couldn't find a valid database entry, getting GPS location.");
-                    startLocationUpdates();
-                }
-            }
-            else{
-                // TODO: Could probably store latitude and longitude so that we don't need to check last known location for coordinates
-                Log.d("DATABASE ENTRY FOUND: ", "Found a valid latest_measurements entry, using database info to populate views.");
-                fusedClient.getLastLocation().addOnSuccessListener(CurrentWeatherActivity.this, new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        // Got last known location. In some rare situations this can be null.
-                        if (location != null || ((int)location.getLongitude() == 0 && (int)location.getLatitude() == 0)) {
-                            pointURL = "https://api.weather.gov/points/" + location.getLatitude() + "," + location.getLongitude();
-                            //getForecastJSON(pointObject.getForecast());                 // Get some forecast data from the forecast (not hourly) URL
-                            //getHourlyForecastJSON(pointObject.getGridPointURL());       // Get data for hourly forecast card ("gridpoints" endpoint actually has the most detailed forecast...)
-
-                            CurrentWeatherActivity.this.runOnUiThread(new Runnable(){
-
-                                @Override
-                                public void run() {
-                                    updateLatestMeasurementViews(databaseResult);
-                                    try {
-                                        getPointJSON(pointURL, false);
-                                    } catch (MalformedURLException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            });
+                handler.post(() -> {
+                    NWSLatestMeasurements databaseResult = DatabaseClient.getInstance(getApplicationContext()).getLatestMeasurementsDatabase().NWSLatestMeasurementsDAO().getMeasurement();
+                    if (databaseResult == null || ChronoUnit.MINUTES.between(OffsetDateTime.now(), databaseResult.getTimestamp()) < 30) {
+                        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                            // TODO: Consider calling
+                            //    ActivityCompat#requestPermissions
+                            // here to request the missing permissions, and then overriding
+                            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                            //                                          int[] grantResults)
+                            // to handle the case where the user grants the permission. See the documentation
+                            // for ActivityCompat#requestPermissions for more details.
+                            return;
                         } else {
-                           Log.d("LOCATION ERROR: ", "GetLastLocation() returned a null or invalid location.");
-                           startLocationUpdates();
+                            Log.d("LOCATION REQUEST: ", "Couldn't find a valid database entry, getting GPS location.");
+                            startLocationUpdates();
                         }
+                    } else {
+                        // TODO: Could probably store latitude and longitude so that we don't need to check last known location for coordinates
+                        Log.d("DATABASE ENTRY FOUND: ", "Found a valid latest_measurements entry, using database info to populate views.");
+                        fusedClient.getLastLocation().addOnSuccessListener(CurrentWeatherActivity.this, new OnSuccessListener<Location>() {
+                            @Override
+                            public void onSuccess(Location location) {
+                                // Got last known location. In some rare situations this can be null.
+                                if (location != null || ((int) location.getLongitude() == 0 && (int) location.getLatitude() == 0)) {
+                                    pointURL = "https://api.weather.gov/points/" + location.getLatitude() + "," + location.getLongitude();
+                                    //getForecastJSON(pointObject.getForecast());                 // Get some forecast data from the forecast (not hourly) URL
+                                    //getHourlyForecastJSON(pointObject.getGridPointURL());       // Get data for hourly forecast card ("gridpoints" endpoint actually has the most detailed forecast...)
+
+                                    CurrentWeatherActivity.this.runOnUiThread(new Runnable() {
+
+                                        @Override
+                                        public void run() {
+                                            updateLatestMeasurementViews(databaseResult);
+                                            try {
+                                                getPointJSON(pointURL, false);
+                                            } catch (MalformedURLException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    });
+                                } else {
+                                    Log.d("LOCATION ERROR: ", "GetLastLocation() returned a null or invalid location.");
+                                    startLocationUpdates();
+                                }
+                            }
+                        });
+                        // TODO: App doesn't seem to ask for GPS permissions, permanently broken if user turns on the app without GPS on! (Keeps returning 0.0/0.0 coordinates) (This may be
+                        //  fixed? Needs more testing!).
+                        //updateLatestMeasurementViews(databaseResult);
                     }
                 });
-                // TODO: App doesn't seem to ask for GPS permissions, permanently broken if user turns on the app without GPS on! (Keeps returning 0.0/0.0 coordinates) (This may be
-                //  fixed? Needs more testing!).
-                //updateLatestMeasurementViews(databaseResult);
             }
-        });
-
+        }
     }
 
     @SuppressLint("MissingPermission")

@@ -1,28 +1,34 @@
 package com.example.weatherappandroidclient;
 
 
+import com.android.volley.VolleyError;
+import com.example.database.CityDatabase;
+import com.example.database.DatabaseHelper;
+import com.example.database.LatestMeasurementsDatabase;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.RetryPolicy;
 import com.example.database.DatabaseClient;
-import com.example.database.OffsetDateTimeConverter;
+import com.example.weatherappandroidclient.classes.City;
 import com.example.weatherappandroidclient.classes.DetailedMeasurement;
 import com.example.weatherappandroidclient.classes.HelperFunctions;
 import com.example.weatherappandroidclient.classes.HourlyAdapter;
-import com.example.weatherappandroidclient.classes.HourlyForecast;
 import com.example.weatherappandroidclient.classes.HourlyForecastCard;
 import com.example.weatherappandroidclient.classes.NWSPoint;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.SearchManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Typeface;
 import android.location.Location;
@@ -41,24 +47,20 @@ import android.view.Display;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.ActionMenuView;
-import androidx.constraintlayout.solver.widgets.Helper;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
@@ -66,6 +68,9 @@ import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
+import androidx.room.migration.Migration;
+import androidx.sqlite.db.SupportSQLiteDatabase;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.android.volley.RequestQueue;
@@ -73,8 +78,8 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 import com.example.weatherappandroidclient.classes.NWSLatestMeasurements;
 import com.example.weatherappandroidclient.classes.OnEventListener;
+import com.example.weatherappandroidclient.classes.SearchResultCard;
 import com.example.weatherappandroidclient.classes.VolleyServerRequest;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -97,7 +102,6 @@ import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
 import org.achartengine.chart.BarChart;
 import org.achartengine.model.RangeCategorySeries;
-import org.achartengine.model.SeriesSelection;
 import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
@@ -109,15 +113,12 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.time.OffsetTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class CurrentWeatherActivity extends AppCompatActivity {
 
@@ -157,9 +158,15 @@ public class CurrentWeatherActivity extends AppCompatActivity {
     public static JsonNode detailedForecastNode;
     public static ArrayList<DetailedMeasurement> dailyForecastMeasuresList = new ArrayList<>();
     public static JsonNode gridpointForecastNode;
-    ConstraintLayout view;
+    ConstraintLayout graphView;
 
+    final int buttonPressedColor = Color.parseColor("#9CD6F9");
+    boolean todayButtonClicked = true;
+    boolean dailyButtonClicked = false;
+    boolean onResumeCalledAlready = false;
+    // TODO: Database for city lookup requires a link back to  https://simplemaps.com/data/us-cities. Be sure to include.
     // TODO: Cloudy sky image requires attribution, need to make a "Licenses" page
+
 
     ActionMenuView bottomBar;
     Menu bottomMenu;
@@ -191,120 +198,225 @@ public class CurrentWeatherActivity extends AppCompatActivity {
         cloudDescription = findViewById(R.id.cloudDescription);
         layout = findViewById(R.id.mainLayout);
         hourlyRecyclerView = findViewById(R.id.hourlyRecyclerView);
-        view = findViewById(R.id.graphView);
+        graphView = findViewById(R.id.graphView);
         swipeRefresh = findViewById(R.id.swiperefresh);
 
         swipeRefresh.setOnRefreshListener(
                 new SwipeRefreshLayout.OnRefreshListener() {
                     @Override
                     public void onRefresh() {
-                        startLocationUpdates();
-                        swipeRefresh.setRefreshing(false);
+                        // TODO: This crashes if user is on this activity from a search result
+                        if(getIntent().getExtras() == null) {
+                            startLocationUpdates();
+                            swipeRefresh.setRefreshing(false);
+                        }
+                        else{
+                            // Else we are here from a search result, they probably want to update that cities information, no need for location updates.
+                            try {
+                                getPointJSON(pointURL,true);
+                                swipeRefresh.setRefreshing(false);
+                            } catch (MalformedURLException e) {
+                                Toast.makeText(getApplicationContext(),"There was a problem updating the weather info. Please try again.",Toast.LENGTH_LONG);
+                            }
+                        }
                     }
                 }
         );
+
+        // Set toolbar and disable app title
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+        getSupportActionBar().setCustomView(R.layout.top_toolbar_custom_layout);
+
+        // Instantiate search view and associate it with the SearchActivity class
+        SearchManager searchManager =   (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        SearchView searchView =         getSupportActionBar().getCustomView().findViewById(R.id.search);
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(new ComponentName(this, SearchActivity.class)));
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                Intent intent = new Intent(getApplicationContext(), SearchActivity.class);
+                intent.setAction(Intent.ACTION_SEARCH);
+                startActivity(intent);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
 
         temp.setTypeface(ResourcesCompat.getFont(this, R.font.opensans_bold));
         temp.setTextSize(getResources().getDimensionPixelSize(R.dimen.text_large));
         background = findViewById(R.id.background);
         window = getWindowManager();
 
+            DatabaseHelper helper = new DatabaseHelper(this);
+            try {
+                helper.createDatabase();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
+            SQLiteDatabase db = SQLiteDatabase.openDatabase("data/data/com.example.weatherappandroidclient/databases/CityDB.sqlite3", null, SQLiteDatabase.OPEN_READONLY);
 
-        // We can just set the date now
-        LocalDateTime currentDate = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, LLL dd hh:mm a");
-        String dateString = currentDate.format(formatter);
-        date.setText(dateString);
+            ActionMenuView bottomBar = findViewById(R.id.toolbar_bottom);
+            Menu bottomMenu = bottomBar.getMenu();
 
-        // Get screen width and height (backwards compatible if else statement)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            window.getDefaultDisplay().getSize(size);
-            screenWidth = size.x;
-            screenHeight = size.y;
-        } else {
-            Display d = window.getDefaultDisplay();
-            screenWidth = d.getWidth();
-            screenHeight = d.getHeight();
-        }
+            getMenuInflater().inflate(R.menu.bottom_toolbar, bottomMenu);
 
-        // Use picasso library to resize background image appropriately (avoid bitmap too large errors)
-        Picasso.get().load(R.drawable.weather_app_background).resize(screenWidth, screenHeight).onlyScaleDown().into(background);
+            // Initialize toolbar buttons
+            ImageButton dailyButton = bottomBar.findViewById(R.id.dailyIcon);
+            TextView dailyText = bottomBar.findViewById(R.id.dailyText);
+            ImageButton todayButton = bottomBar.findViewById(R.id.todayIcon);
+            TextView todayText = bottomBar.findViewById(R.id.todayText);
 
-        // Module needed for Jackson to construct Java OffsetDateTime fields
-        mapper.registerModule(new JavaTimeModule());
+            todayButton.getDrawable().setTint(buttonPressedColor);
+            todayText.setTextColor(buttonPressedColor);
 
-        // First we need to get GPS coordinates
-        // So make sure GPS is enabled. If not, show an alert.
-        final LocationManager manager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
-        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            buildAlertMessageNoGps();
-        }
+            // Listener for home/hourly button
+            todayButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.d("CLICK", "THE TODAY BUTTON WAS CLICKED");
+                    if (dailyButtonClicked == true) {                       // Only do anything if user is on another activity (i.e. is on the daily forecast)
+                        todayButtonClicked = true;
+                        todayButton.getDrawable().setTint(buttonPressedColor);
+                        todayText.setTextColor(buttonPressedColor);
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
-        }
-
-
-        mCallback = new LocationCallback() {
-            //This callback is where we get "streaming" location updates. We can check things like accuracy to determine whether
-            //this latest update should replace our previous estimate.
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                if (locationResult == null) {
-                    Log.d("LOCATION ERROR: ", "locationResult null");
-                    return;
-                }
-                Log.d("LOCATION UPDATE: ", "requestLocationUpdates has received a new location. Calling \"onLocationResult\" callback.");
-                Log.d(TAG, "received " + locationResult.getLocations().size() + " locations");
-                for (Location loc : locationResult.getLocations()) {
-                    latitude = loc.getLatitude();
-                    longitude = loc.getLongitude();
-
-                    // Now we can make request to NWS API
-                    pointURL = "https://api.weather.gov/points/" + latitude + "," + longitude;
-                    try {
-                        getPointJSON(pointURL, true);              // First get stations endpoint URL from our existing point URL
-                        //   URL latestMeasurementsURL = getMeasurementsURL(stationsURL);    // Now, from the stations endpoint, we can get the first station URL from the "observationStations" field
-                        // note that we append "/observations/latest" to that station URL to get latest measurements
-                        //NWSLatestMeasurements measurements = getLatestMeasurements(latestMeasurementsURL);
-                        //info.setText(measurements.toString());
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                        // Reset the dailyButton's attributes
+                        dailyButton.getDrawable().setTint(Color.WHITE);
+                        dailyText.setTextColor(Color.WHITE);
+                        dailyButtonClicked = false;
                     }
                 }
-            }
+            });
 
-            @Override
-            public void onLocationAvailability(LocationAvailability locationAvailability) {
-                Log.d(TAG, "locationAvailability is " + locationAvailability.isLocationAvailable());
-                super.onLocationAvailability(locationAvailability);
-            }
-        };
+            // Listener for daily forecast button
+            dailyButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.d("CLICK", "THE DAILY BUTTON WAS CLICKED");
+                    if (todayButtonClicked == true) {
+                        dailyButtonClicked = true;
+                        dailyButton.getDrawable().setTint(buttonPressedColor);
+                        dailyText.setTextColor(buttonPressedColor);
 
-        //permissions
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            //request permission.
-            //However check if we need to show an explanatory UI first
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
-                showRationale();
+                        // Reset the todayButton's attributes
+                        todayButton.getDrawable().setTint(Color.WHITE);
+                        todayText.setTextColor(Color.WHITE);
+                        todayButtonClicked = false;
+                    }
+                }
+            });
+
+            // We can just set the date now
+            LocalDateTime currentDate = LocalDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, LLL dd hh:mm a");
+            String dateString = currentDate.format(formatter);
+            date.setText(dateString);
+
+            // Get screen width and height (backwards compatible if else statement)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                window.getDefaultDisplay().getSize(size);
+                screenWidth = size.x;
+                screenHeight = size.y;
             } else {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_NETWORK_STATE}, 2);
+                Display d = window.getDefaultDisplay();
+                screenWidth = d.getWidth();
+                screenHeight = d.getHeight();
             }
-        } else {
-            //we already have the permissions.
-            getLocation();
-        }
 
+            // Use picasso library to resize background image appropriately (avoid bitmap too large errors)
+            Picasso.get().load(R.drawable.weather_app_background).resize(screenWidth, screenHeight).onlyScaleDown().into(background);
+
+            // Module needed for Jackson to construct Java OffsetDateTime fields
+            mapper.registerModule(new JavaTimeModule());
+
+            // First we need to get GPS coordinates
+            // So make sure GPS is enabled. If not, show an alert.
+            final LocationManager manager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+            if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                buildAlertMessageNoGps();
+            }
+
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+            }
+
+
+            mCallback = new LocationCallback() {
+                //This callback is where we get "streaming" location updates. We can check things like accuracy to determine whether
+                //this latest update should replace our previous estimate.
+                @Override
+                public void onLocationResult(LocationResult locationResult) {
+                    if (locationResult == null) {
+                        Log.d("LOCATION ERROR: ", "locationResult null");
+                        return;
+                    }
+                    Log.d("LOCATION UPDATE: ", "requestLocationUpdates has received a new location. Calling \"onLocationResult\" callback.");
+                    Log.d(TAG, "received " + locationResult.getLocations().size() + " locations");
+                    for (Location loc : locationResult.getLocations()) {
+                        latitude = loc.getLatitude();
+                        longitude = loc.getLongitude();
+
+                        // Now we can make request to NWS API
+                        pointURL = "https://api.weather.gov/points/" + latitude + "," + longitude;
+                        try {
+                            getPointJSON(pointURL, true);              // First get stations endpoint URL from our existing point URL
+                            //   URL latestMeasurementsURL = getMeasurementsURL(stationsURL);    // Now, from the stations endpoint, we can get the first station URL from the "observationStations" field
+                            // note that we append "/observations/latest" to that station URL to get latest measurements
+                            //NWSLatestMeasurements measurements = getLatestMeasurements(latestMeasurementsURL);
+                            //info.setText(measurements.toString());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+                @Override
+                public void onLocationAvailability(LocationAvailability locationAvailability) {
+                    Log.d(TAG, "locationAvailability is " + locationAvailability.isLocationAvailable());
+                    super.onLocationAvailability(locationAvailability);
+                }
+            };
+
+            //permissions
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                //request permission.
+                //However check if we need to show an explanatory UI first
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
+                    showRationale();
+                } else {
+                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_NETWORK_STATE}, 2);
+                }
+            } else {
+                //we already have the permissions.
+                getLocation();
+            }
+
+    }
+
+    private void handleIntent(Intent intent){
+        // Given the SearchResult object from intent extras, get the coordinates and use that for NWS REST API calls
+        SearchResultCard result = (SearchResultCard) intent.getSerializableExtra("SearchResult");
+        pointURL = "https://api.weather.gov/points/" + result.getLat() + "," + result.getLng();
+        try {
+            getPointJSON(pointURL, true);
+        } catch (MalformedURLException e) {
+            Toast.makeText(this, "There was a problem getting results from the NWS. Please try the search again.", Toast.LENGTH_LONG);
+        }
     }
 
     public void getPointJSON(String url, boolean needNewMeasurements) throws MalformedURLException {
@@ -321,6 +433,10 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                 JsonNode gridPointNode = propertyNode.path("forecastGridData");
                 pointObject = new NWSPoint(forecastNode.textValue(), hourlyForecastNode.textValue(), stationsNode.textValue(), gridPointNode.textValue(), response.path("id").textValue());
 
+                // Also set the currentCity title according to the city returned by NWS
+                TextView currentCity = findViewById(R.id.currentCity);
+                currentCity.setText(propertyNode.path("relativeLocation").path("properties").path("city").textValue() + "," + propertyNode.path("relativeLocation").path("properties").path("state").textValue());
+                currentCity.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.opensans_bold));
 
                 getForecastJSON(pointObject.getForecast());                 // Get some forecast data from the forecast (not hourly) URL
                 getHourlyForecastJSON(pointObject.getGridPointURL());       // Get data for hourly forecast card ("gridpoints" endpoint actually has the most detailed forecast...)
@@ -328,7 +444,12 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                     getMeasurementsURL(pointObject.getStationsURL());           // Get latest measurements URL from stations list
                 }
 
-                @Override
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+
+            @Override
             public void onFailure(Exception e) {
 
             }
@@ -342,6 +463,11 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                 JsonNode response = (JsonNode) object;
                 latestMeasurementsURL = response.path("observationStations").path(0).textValue() + "/observations/latest";  // Get station URL then append path end in order to get latest measures
                 getLatestMeasurements(latestMeasurementsURL);
+
+            }
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
 
             }
 
@@ -374,6 +500,11 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                 updateLatestMeasurementViews(measurements);
             }
 
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+
 
             @Override
             public void onFailure(Exception e) {
@@ -395,6 +526,15 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                 // Update the "atAGlance" textView with info from the first forecast node
                 glance.setText(periodsNode.path(0).path("detailedForecast").textValue());
 
+            }
+
+            @Override
+            public void onErrorResponse(VolleyError error){
+                /** Called if we get a 404 (or any other) error code. So far this has been seen
+                 *  with GPS coordinates that are over water, as NWS doesn't support "marine forecasts" */
+                ConstraintLayout todayLayout = findViewById(R.id.today_constraint_layout);
+                todayLayout.removeView(findViewById(R.id.glanceTitle));
+                Toast.makeText(getApplicationContext(), "NWS currently doesn't support daily forecasts for marine locations.", Toast.LENGTH_LONG);
             }
 
             @Override
@@ -437,7 +577,7 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                     mRenderer.addXTextLabel(i, day.toString());
                 }
 
-                if(view.getChildAt(1) == null) {    // A check to make sure we haven't already drawn the graph
+                if(graphView.getChildAt(1) == null) {    // A check to make sure we haven't already drawn the graph
                     XYMultipleSeriesDataset dataset = new XYMultipleSeriesDataset();
 
                     dataset.addSeries(series.toXYSeries());
@@ -470,16 +610,21 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                             mRenderer, BarChart.Type.DEFAULT);
                     chartView.setId(View.generateViewId());
                     //ConstraintLayout view = findViewById(R.id.graphView);
-                    view.setId(View.generateViewId());
+                    graphView.setId(View.generateViewId());
                     chartView.setMinimumHeight(HelperFunctions.dpToPx(200, getApplicationContext()));
                     chartView.setMinimumWidth(HelperFunctions.dpToPx(200, getApplicationContext()));
-                    view.addView(chartView);
-                    view.removeView(findViewById(R.id.progress_bar));
+                    graphView.addView(chartView);
+                    graphView.removeView(findViewById(R.id.high_low_progress_bar));
                     renderer.setGradientEnabled(true);
                     renderer.setGradientStart(lowestTemp, Color.rgb(0, 57, 235));
                     renderer.setGradientStop(highestTemp + 5, Color.rgb(242, 96, 1));
                     renderer.setDisplayChartValues(true);
                 }
+            }
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
             }
 
 
@@ -635,6 +780,7 @@ public class CurrentWeatherActivity extends AppCompatActivity {
         hourlyRecyclerView.setAdapter(adapter);
 
         adapter.notifyDataSetChanged();
+       // layout.removeView(findViewById(R.id.hourly_progress_bar));
     }
 
     public void updateLatestMeasurementViews(NWSLatestMeasurements measurementObject){
@@ -691,31 +837,38 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                 break;
 
         }
-        DrawableCompat.setTint(cloudCoverIcon.getDrawable(), Color.WHITE);
+        ConstraintLayout todayLayout = findViewById(R.id.today_constraint_layout);
+        TextView glanceTitle = findViewById(R.id.glanceTitle);
+        glanceTitle.setText("Today at a Glance");
+        todayLayout.removeView(findViewById(R.id.today_progress_bar));
     }
 
     @Override
     protected void onResume() {
-        // TODO: Graph draws a double of itself when navigated to from antoher activity via back button.
+        // TODO: Graph draws a double of itself when navigated to from another activity via back button.
         super.onResume();
-        HandlerThread handlerThread = new HandlerThread("MyHandlerThread");
-        handlerThread.start();
-        Looper looper = handlerThread.getLooper();
-        Handler handler = new Handler(looper);
+        if(onResumeCalledAlready == false){
+            onResumeCalledAlready = true;
+            if(getIntent().getExtras() != null) handleIntent(getIntent());
+            else {
+                HandlerThread handlerThread = new HandlerThread("MyHandlerThread");
+                handlerThread.start();
+                Looper looper = handlerThread.getLooper();
+                Handler handler = new Handler(looper);
 
-        handler.post(() -> {
-            NWSLatestMeasurements databaseResult = DatabaseClient.getInstance(getApplicationContext()).getAppDatabase().NWSLatestMeasurementsDAO().getMeasurement();
-            if (databaseResult == null || ChronoUnit.MINUTES.between(OffsetDateTime.now(), databaseResult.getTimestamp()) < 1) {
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    // TODO: Consider calling
-                    //    ActivityCompat#requestPermissions
-                    // here to request the missing permissions, and then overriding
-                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                    //                                          int[] grantResults)
-                    // to handle the case where the user grants the permission. See the documentation
-                    // for ActivityCompat#requestPermissions for more details.
-                    return;
-                }
+                handler.post(() -> {
+                    NWSLatestMeasurements databaseResult = DatabaseClient.getInstance(getApplicationContext()).getLatestMeasurementsDatabase().NWSLatestMeasurementsDAO().getMeasurement();
+                    if (databaseResult == null || ChronoUnit.MINUTES.between(OffsetDateTime.now(), databaseResult.getTimestamp()) < 30) {
+                        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                            // TODO: Consider calling
+                            //    ActivityCompat#requestPermissions
+                            // here to request the missing permissions, and then overriding
+                            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                            //                                          int[] grantResults)
+                            // to handle the case where the user grants the permission. See the documentation
+                            // for ActivityCompat#requestPermissions for more details.
+                            return;
+                        }
                 else {
                     Log.d("LOCATION REQUEST: ", "Couldn't find a valid database entry, getting GPS location.");
                     startLocationUpdates();
@@ -746,16 +899,46 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                                 }
                             });
                         } else {
-                           Log.d("LOCATION ERROR: ", "GetLastLocation() returned a null or invalid location.");
-                           startLocationUpdates();
+                            Log.d("LOCATION REQUEST: ", "Couldn't find a valid database entry, getting GPS location.");
+                            startLocationUpdates();
                         }
+                    } else {
+                        // TODO: Could probably store latitude and longitude so that we don't need to check last known location for coordinates
+                        Log.d("DATABASE ENTRY FOUND: ", "Found a valid latest_measurements entry, using database info to populate views.");
+                        fusedClient.getLastLocation().addOnSuccessListener(CurrentWeatherActivity.this, new OnSuccessListener<Location>() {
+                            @Override
+                            public void onSuccess(Location location) {
+                                // Got last known location. In some rare situations this can be null.
+                                if (location != null || ((int) location.getLongitude() == 0 && (int) location.getLatitude() == 0)) {
+                                    pointURL = "https://api.weather.gov/points/" + location.getLatitude() + "," + location.getLongitude();
+                                    //getForecastJSON(pointObject.getForecast());                 // Get some forecast data from the forecast (not hourly) URL
+                                    //getHourlyForecastJSON(pointObject.getGridPointURL());       // Get data for hourly forecast card ("gridpoints" endpoint actually has the most detailed forecast...)
+
+                                    CurrentWeatherActivity.this.runOnUiThread(new Runnable() {
+
+                                        @Override
+                                        public void run() {
+                                            updateLatestMeasurementViews(databaseResult);
+                                            try {
+                                                getPointJSON(pointURL, false);
+                                            } catch (MalformedURLException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    });
+                                } else {
+                                    Log.d("LOCATION ERROR: ", "GetLastLocation() returned a null or invalid location.");
+                                    startLocationUpdates();
+                                }
+                            }
+                        });
+                        // TODO: App doesn't seem to ask for GPS permissions, permanently broken if user turns on the app without GPS on! (Keeps returning 0.0/0.0 coordinates) (This may be
+                        //  fixed? Needs more testing!).
+                        //updateLatestMeasurementViews(databaseResult);
                     }
                 });
-                // TODO: App doesn't seem to ask for GPS permissions, permenantly broken if user turns on the app without GPS on! (Keeps returning 0.0/0.0 coordinates).
-                //updateLatestMeasurementViews(databaseResult);
             }
-        });
-
+        }
     }
 
     @SuppressLint("MissingPermission")

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<searchable xmlns:android="http://schemas.android.com/apk/res/android"
+    android:label="@string/search_title"
+    android:hint="@string/search_hint"
+    android:searchMode="queryRewriteFromData"
+
+
+    android:searchSuggestAuthority="string"
+    android:searchSuggestPath="string"
+    android:searchSuggestSelection="string"
+    android:searchSuggestIntentAction="string"
+    android:searchSuggestIntentData="string"
+    android:searchSuggestThreshold="5"/>
+
+    <!-- These may be optional
+   android:includeInGlobalSearch=["true" | "false"]
+    android:searchSettingsDescription="string resource"
+    android:queryAfterZeroResults=["true" | "false"]
+    android:voiceSearchMode=["showVoiceSearchButton" | "launchWebSearch" | "launchRecognizer"]
+    android:voiceLanguageModel=["free-form" | "web_search"]
+    android:voicePromptText="string resource"
+    android:voiceLanguage="string"
+    android:voiceMaxResults="int"-->
+

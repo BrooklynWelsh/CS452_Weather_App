@@ -15,11 +15,12 @@
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
 
+    <string name="daily_forecast_button"><u>Detailed Daily Forecast</u></string>
+
+    <!-- Strings for the daily forecast weather cards -->
     <string name="temp">%1$s°%2$s</string>
     <string name="feelsLike">Feels like %1$s°%2$s</string>
     <string name="rain_chance">%1s%%</string>
-    <string name="daily_forecast_button"><u>Detailed Daily Forecast</u></string>
-
     <string name="rain_probability_daily">Rain Probability: %1$s%%</string>
     <string name="rain_quantity_daily">Rain Quantity: %1$smm</string>
     <string name="cloud_cover_daily">Cloud Cover: %1$s%%</string>
@@ -31,5 +32,11 @@
     <string name="wind_gust_daily">Wind Gust (Avg): %1$s %2$s</string>
     <string name="dew_point_daily">Dew Point: %1$s°%2$s</string>
 
+    <!-- Strings for the search bar -->
+    <string name="search_hint">Enter a city or address</string>
+    <string name="search_title">Search by City</string>
+
+    <!-- Strings for search results -->
+    <string name="search_city_state_info">%1s,%2s</string>
     <string name="wind_speed_hourly">%1s %2s</string>
 </resources>

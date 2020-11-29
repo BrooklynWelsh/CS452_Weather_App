@@ -38,6 +38,11 @@ android {
 
 dependencies {
     def room_version = "2.2.5"
+    def fragment_version = "1.2.5"
+
+    // Java language implementation
+    implementation "androidx.fragment:fragment:$fragment_version"
+
     implementation "androidx.room:room-runtime:$room_version"
     implementation 'androidx.paging:paging-common:2.1.2'
     implementation "androidx.room:room-compiler:$room_version"

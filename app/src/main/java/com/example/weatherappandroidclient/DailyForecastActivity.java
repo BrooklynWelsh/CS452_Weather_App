@@ -1,19 +1,25 @@
 package com.example.weatherappandroidclient;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.ActionMenuView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 
@@ -45,13 +51,29 @@ public class DailyForecastActivity extends AppCompatActivity {
     public View lastCardView =  null;
     public String tempUnit = "F";
     public String speedUnit = "kmh";
+    final int buttonPressedColor = Color.parseColor("#9CD6F9");
+    boolean todayButtonClicked = false;
+
 
     int screenHeight = CurrentWeatherActivity.screenHeight;
     int screenWidth = CurrentWeatherActivity.screenWidth;
     WindowManager window;
     Point size = new Point();
 
+    ImageButton dailyButton;
+    TextView dailyText;
+    ImageButton todayButton;
+    TextView todayText;
+
     // TODO: Refactor activity to show a summary of daily forecast, and allow user to tap for a more detailed one.
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.bottom_toolbar, menu);
+        return true;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
@@ -69,7 +91,6 @@ public class DailyForecastActivity extends AppCompatActivity {
         }
         ImageView background = findViewById(R.id.background);
         background.setImageDrawable(lastBackground);
-      //  Picasso.get().load(lastBackground).resize(screenWidth, screenHeight).onlyScaleDown().into(this.<ImageView>findViewById(R.id.background));
         getDailyForecastJSON(pointURL);
     }
 
@@ -129,6 +150,7 @@ public class DailyForecastActivity extends AppCompatActivity {
                     Iterator<JsonNode> windGustIterator =  propertiesNode.path("windGust").path("values").elements();
                     int windGust = (int) HelperFunctions.getDailyAverage(windGustIterator, maxTempTimestamp);
 
+
                     // Get highest and lowest apparent temperature
                     Iterator<JsonNode> apparentTemperatureIterator = propertiesNode.path("apparentTemperature").path("values").elements();
                     int lowestApparentTemp = HelperFunctions.convertToFahrenheit((int)HelperFunctions.getMin(apparentTemperatureIterator, maxTempTimestamp));
@@ -138,8 +160,6 @@ public class DailyForecastActivity extends AppCompatActivity {
                     // TODO: Also check for snowfall amount, ice accumulation
 
                     // TODO: check the "weather" node for short blurbs of weather events (scattered rain, chance of rain, etc.)
-
-                    // TODO: Add code to decide on a weather icon for each day
 
                     // Create a card view to contain each day
                     LayoutInflater inflater = getLayoutInflater();
@@ -194,6 +214,10 @@ public class DailyForecastActivity extends AppCompatActivity {
                         TextView dewPointView = thisCard.findViewById(R.id.dewPointView);
                         dewPointView.setText(getString(R.string.dew_point_daily, String.valueOf((int)dewPoint), tempUnit));
 
+                        ImageView conditionsIcon = thisCard.findViewById(R.id.conditionsIcon);
+                        HelperFunctions.setCloudIcon(this, conditionsIcon, skyCover, maxTempTimestamp, precipitationProbability);
+                        conditionsIcon.getDrawable().setTint(Color.WHITE);
+
                     }
                     else{
                         // Else we need to attach this card to the bottom of the last card
@@ -241,6 +265,10 @@ public class DailyForecastActivity extends AppCompatActivity {
 
                         TextView dewPointView = thisCard.findViewById(R.id.dewPointView);
                         dewPointView.setText(getString(R.string.dew_point_daily, String.valueOf((int)dewPoint), tempUnit));
+
+                        ImageView conditionsIcon = thisCard.findViewById(R.id.conditionsIcon);
+                        HelperFunctions.setCloudIcon(this, conditionsIcon, skyCover, maxTempTimestamp, precipitationProbability);
+                        conditionsIcon.getDrawable().setTint(Color.WHITE);
 
                         constraints.connect(thisCard.getId(), ConstraintSet.LEFT, layout.getId(), ConstraintSet.LEFT, HelperFunctions.dpToPx(2, DailyForecastActivity.this));
                         constraints.connect(thisCard.getId(), ConstraintSet.TOP, lastCardView.getId(), ConstraintSet.BOTTOM, HelperFunctions.dpToPx(2, DailyForecastActivity.this));

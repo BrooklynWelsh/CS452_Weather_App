@@ -5,6 +5,8 @@ import com.android.volley.VolleyError;
 import com.example.database.CityDatabase;
 import com.example.database.DatabaseHelper;
 import com.example.database.LatestMeasurementsDatabase;
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.RetryPolicy;
 import com.example.database.DatabaseClient;
 import com.example.weatherappandroidclient.classes.City;
 import com.example.weatherappandroidclient.classes.DetailedMeasurement;
@@ -63,6 +65,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
@@ -165,6 +168,20 @@ public class CurrentWeatherActivity extends AppCompatActivity {
     // TODO: Cloudy sky image requires attribution, need to make a "Licenses" page
 
 
+    ActionMenuView bottomBar;
+    Menu bottomMenu;
+
+    public static ImageButton dailyButton;
+    public static TextView dailyText;
+    public static ImageButton todayButton;
+    public static TextView todayText;
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.bottom_toolbar, menu);
+        return true;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -404,8 +421,6 @@ public class CurrentWeatherActivity extends AppCompatActivity {
 
     public void getPointJSON(String url, boolean needNewMeasurements) throws MalformedURLException {
         // For current measurements, we want to get the "observationStations" field and return the URL
-        RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
-
         VolleyServerRequest stringRequest = new VolleyServerRequest(getApplicationContext(), new OnEventListener() {
             @Override
             public void onSuccess(Object object) throws IOException {
@@ -438,9 +453,7 @@ public class CurrentWeatherActivity extends AppCompatActivity {
             public void onFailure(Exception e) {
 
             }
-        }, url);
-
-    }
+        }, url); }
 
     public void getMeasurementsURL(String url) throws IOException {
         VolleyServerRequest stringRequest = new VolleyServerRequest(getApplicationContext(), new OnEventListener() {
@@ -622,16 +635,6 @@ public class CurrentWeatherActivity extends AppCompatActivity {
         }, url);
     }
 
-    private void startHourlyForecastActivity() {
-        Intent intent = new Intent(this, HourlyForecastActivity.class);
-        startActivity(intent);
-    }
-
-    private void startDailyForecastActivity() {
-        Intent intent = new Intent(this, DailyForecastActivity.class);
-        startActivity(intent);
-    }
-
     @SuppressLint("MissingPermission")
     private void getLocation() {
         fusedClient = LocationServices.getFusedLocationProviderClient(this);
@@ -670,7 +673,6 @@ public class CurrentWeatherActivity extends AppCompatActivity {
         // For now we'll get hourly forecast data for rest of today and tomorrow
         // So, while the timestamp isn't from two days from now, create a new measurement object
 
-        // TODO: convert to horizontal cards and vertical scroll view (using RecyclerView?)
         // Use https://api.weather.gov/gridpoints/RNK/101,78 for more data, such as precip probability
         LocalDate currentDate = LocalDate.now();    // Get current date
         boolean pastLimit = false;
@@ -866,6 +868,36 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                             // to handle the case where the user grants the permission. See the documentation
                             // for ActivityCompat#requestPermissions for more details.
                             return;
+                        }
+                else {
+                    Log.d("LOCATION REQUEST: ", "Couldn't find a valid database entry, getting GPS location.");
+                    startLocationUpdates();
+                }
+            }
+            else{
+                // TODO: Could probably store latitude and longitude so that we don't need to check last known location for coordinates
+                Log.d("DATABASE ENTRY FOUND: ", "Found a valid latest_measurements entry, using database info to populate views.");
+                fusedClient.getLastLocation().addOnSuccessListener(CurrentWeatherActivity.this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        // Got last known location. In some rare situations this can be null.
+                        if (location != null || ((int)location.getLongitude() != 0 && (int)location.getLatitude() != 0)) {
+                            pointURL = "https://api.weather.gov/points/" + location.getLatitude() + "," + location.getLongitude();
+                            //getForecastJSON(pointObject.getForecast());                 // Get some forecast data from the forecast (not hourly) URL
+                            //getHourlyForecastJSON(pointObject.getGridPointURL());       // Get data for hourly forecast card ("gridpoints" endpoint actually has the most detailed forecast...)
+
+                            CurrentWeatherActivity.this.runOnUiThread(new Runnable(){
+
+                                @Override
+                                public void run() {
+                                    updateLatestMeasurementViews(databaseResult);
+                                    try {
+                                        getPointJSON(pointURL, false);
+                                    } catch (MalformedURLException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            });
                         } else {
                             Log.d("LOCATION REQUEST: ", "Couldn't find a valid database entry, getting GPS location.");
                             startLocationUpdates();

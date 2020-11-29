@@ -38,4 +38,5 @@
 
     <!-- Strings for search results -->
     <string name="search_city_state_info">%1s,%2s</string>
+    <string name="wind_speed_hourly">%1s %2s</string>
 </resources>

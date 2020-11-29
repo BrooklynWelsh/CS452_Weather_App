@@ -47,6 +47,16 @@
             android:layout_marginLeft="8dp"
             />
 
+            <ImageView
+                android:id="@+id/conditionsIcon"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                app:layout_constraintEnd_toStartOf="@id/lowTempView"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginTop="8dp"
+                android:layout_marginRight="20dp"
+                />
+
         <TextView
             android:id="@+id/lowTempView"
             android:layout_width="wrap_content"

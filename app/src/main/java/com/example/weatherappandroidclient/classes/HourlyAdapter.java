@@ -3,6 +3,7 @@ package com.example.weatherappandroidclient.classes;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +16,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.core.widget.ImageViewCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.transition.AutoTransition;
@@ -35,6 +37,8 @@ public class HourlyAdapter extends
         RecyclerView.Adapter<HourlyAdapter.ViewHolder> {
 
     private List<HourlyForecastCard> cards;
+    private Typeface boldOpenSans;
+    private String windUnit = "mph";    // Default to miles per hour
 
     public HourlyAdapter(List<HourlyForecastCard> cards){
         this.cards = cards;
@@ -45,6 +49,7 @@ public class HourlyAdapter extends
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         Context context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
+        boldOpenSans = ResourcesCompat.getFont(context, R.font.opensans_bold);
 
         ConstraintLayout hourlyCardsView = (ConstraintLayout)inflater.inflate(R.layout.hourly_forecast_card, parent, false);
 
@@ -62,43 +67,56 @@ public class HourlyAdapter extends
 
         TextView thisTemp = holder.temperatureText;
         thisTemp.setText(String.valueOf(thisCard.getTemperature()) + "°F");
+        thisTemp.setTypeface(boldOpenSans);
 
         TextView thisConditions = holder.conditionsText;
         thisConditions.setText(thisCard.getConditions());
-        // Determine the conditions
+        thisConditions.setTypeface(boldOpenSans);
 
         TextView thisPrecipitationChance = holder.precipitationChanceText;
         thisPrecipitationChance.setText(String.valueOf(thisCard.getPrecipitationChance()) + "%");
+        thisPrecipitationChance.setTypeface(boldOpenSans);
 
         TextView thisWindDirection = holder.windDirectionText;
         thisWindDirection.setText(thisCard.getWindDirection());
+        thisWindDirection.setTypeface(boldOpenSans);
 
         TextView thisWindSpeed = holder.windSpeedText;
-        thisWindSpeed.setText(String.valueOf(thisCard.getWindSpeed()) + "mph"); // TODO: Use resource string instead
+        thisWindSpeed.setText(thisWindSpeed.getContext().getString(R.string.wind_speed_hourly, String.valueOf(thisCard.getWindSpeed()), windUnit)); // TODO: Use resource string instead
+        thisWindSpeed.setTypeface(boldOpenSans);
 
         TextView thisFeelsLike = holder.feelsLikeText;
         thisFeelsLike.setText(String.valueOf(thisCard.getFeelsLike())  + "°F");
+        thisFeelsLike.setTypeface(boldOpenSans);
 
         TextView thisDewPoint = holder.dewPointText;
         thisDewPoint.setText(String.valueOf(thisCard.getDewPoint()) + "°F");
+        thisDewPoint.setTypeface(boldOpenSans);
 
         TextView thisHumidity = holder.humidityText;
         thisHumidity.setText(String.valueOf(thisCard.getHumidity()) + "%");
+        thisHumidity.setTypeface(boldOpenSans);
 
         TextView thisPressure = holder.pressureText;
         thisPressure.setText(String.valueOf(thisCard.getPressure()) + "\"Hg");
+        thisPressure.setTypeface(boldOpenSans);
 
         TextView thisVisibility = holder.visibilityText;
         thisVisibility.setText(String.valueOf(thisCard.getVisibility()));
+        thisVisibility.setTypeface(boldOpenSans);
 
         TextView thisWindChill = holder.windChillText;
         thisWindChill.setText(String.valueOf(thisCard.getWindChill()));
+        thisWindChill.setTypeface(boldOpenSans);
 
         // Determine the icon for weather conditions
         ImageView thisIcon = holder.iconView;
+        ImageView thisSmallIcon = holder.smallIconView;
         int drawableResourceId = holder.iconView.getContext().getResources().getIdentifier(thisCard.drawableString, "drawable", holder.iconView.getContext().getPackageName());
         thisIcon.setImageDrawable(holder.iconView.getContext().getResources().getDrawable(drawableResourceId));
+        thisSmallIcon.setImageDrawable(holder.iconView.getContext().getResources().getDrawable(drawableResourceId));
         ImageViewCompat.setImageTintList(thisIcon, ColorStateList.valueOf(Color.WHITE));
+        ImageViewCompat.setImageTintList(thisSmallIcon, ColorStateList.valueOf(Color.WHITE));
     }
     @Override
     public int getItemCount() {
@@ -122,6 +140,7 @@ public class HourlyAdapter extends
         public TextView pressureText;
         public TextView visibilityText;
         public TextView windChillText;
+        public ImageView smallIconView;
 
         public ImageView iconView;
         public ImageButton arrowButton;
@@ -139,7 +158,7 @@ public class HourlyAdapter extends
             temperatureText = (TextView) itemView.findViewById(R.id.temperatureView);
             conditionsText = (TextView) itemView.findViewById(R.id.weatherTextView);
             precipitationChanceText = (TextView) itemView.findViewById(R.id.rainChanceTextView);
-            windDirectionText = (TextView) itemView.findViewById(R.id.windDirectionTextView);
+            windDirectionText = (TextView) itemView.findViewById(R.id.windDirectionValueView);
             windSpeedText = (TextView) itemView.findViewById(R.id.windSpeedTextView);
             feelsLikeText = (TextView) itemView.findViewById(R.id.feelsLikeValue);
             dewPointText = (TextView) itemView.findViewById(R.id.dewPointValue);
@@ -149,6 +168,7 @@ public class HourlyAdapter extends
             windChillText = (TextView) itemView.findViewById(R.id.windChillValue);
 
             iconView = (ImageView) itemView.findViewById(R.id.iconView);
+            smallIconView = (ImageView) itemView.findViewById(R.id.smallIconView);
 
             arrowButton = (ImageButton) itemView.findViewById(R.id.expand_arrow);
             hiddenView = (ConstraintLayout) itemView.findViewById(R.id.hidden_view);

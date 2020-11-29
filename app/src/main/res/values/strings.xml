@@ -30,4 +30,6 @@
     <string name="wind_chill_daily">Wind Chill: %1$s°%2$s</string>
     <string name="wind_gust_daily">Wind Gust (Avg): %1$s %2$s</string>
     <string name="dew_point_daily">Dew Point: %1$s°%2$s</string>
+
+    <string name="wind_speed_hourly">%1s %2s</string>
 </resources>

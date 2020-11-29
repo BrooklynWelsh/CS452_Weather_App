@@ -137,7 +137,8 @@ public class NWSLatestMeasurements {
 
     @JsonProperty("precipitationLastHour")
     private void unpackPrecipitationLastHour(Map<String, Object> precipitationLastHour){
-        if(precipitationLastHour.get("value") != null) this.precipitationLastHour = (double) precipitationLastHour.get("value");
+        if(precipitationLastHour.get("value") != null && precipitationLastHour.get("value").getClass() == Double.class) this.precipitationLastHour = (double) precipitationLastHour.get("value");
+        else if(precipitationLastHour.get("value") != null && precipitationLastHour.get("value").getClass() == Double.class) this.precipitationLastHour = (Integer) precipitationLastHour.get("value");
         else this.precipitationLastHour = 0;
     }
 

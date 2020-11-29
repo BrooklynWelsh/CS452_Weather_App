@@ -1,6 +1,7 @@
 package com.example.weatherappandroidclient;
 
 
+import com.android.volley.VolleyError;
 import com.example.database.CityDatabase;
 import com.example.database.DatabaseHelper;
 import com.example.database.LatestMeasurementsDatabase;
@@ -39,6 +40,7 @@ import android.text.SpannableString;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.SuperscriptSpan;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -51,6 +53,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.ActionMenuView;
 import androidx.appcompat.widget.SearchView;
@@ -161,18 +164,6 @@ public class CurrentWeatherActivity extends AppCompatActivity {
     // TODO: Database for city lookup requires a link back to  https://simplemaps.com/data/us-cities. Be sure to include.
     // TODO: Cloudy sky image requires attribution, need to make a "Licenses" page
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.top_toolbar, menu);
-
-        // Instantiate search view and associate it with the SearchActivity class
-        SearchManager searchManager =   (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        SearchView searchView =         (SearchView) menu.findItem(R.id.search).getActionView();
-        searchView.setSearchableInfo(searchManager.getSearchableInfo(new ComponentName(this, SearchActivity.class)));
-
-        return true;
-    }
 
 
     @Override
@@ -216,15 +207,35 @@ public class CurrentWeatherActivity extends AppCompatActivity {
         );
 
         // Set toolbar and disable app title
-        Toolbar toolbar = findViewById(R.id.top_toolbar);
-        setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
+        getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+        getSupportActionBar().setCustomView(R.layout.top_toolbar_custom_layout);
+
+        // Instantiate search view and associate it with the SearchActivity class
+        SearchManager searchManager =   (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        SearchView searchView =         getSupportActionBar().getCustomView().findViewById(R.id.search);
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(new ComponentName(this, SearchActivity.class)));
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                Intent intent = new Intent(getApplicationContext(), SearchActivity.class);
+                intent.setAction(Intent.ACTION_SEARCH);
+                startActivity(intent);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
 
         temp.setTypeface(ResourcesCompat.getFont(this, R.font.opensans_bold));
         temp.setTextSize(getResources().getDimensionPixelSize(R.dimen.text_large));
         background = findViewById(R.id.background);
         window = getWindowManager();
-        
+
             DatabaseHelper helper = new DatabaseHelper(this);
             try {
                 helper.createDatabase();
@@ -407,6 +418,10 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                 JsonNode gridPointNode = propertyNode.path("forecastGridData");
                 pointObject = new NWSPoint(forecastNode.textValue(), hourlyForecastNode.textValue(), stationsNode.textValue(), gridPointNode.textValue(), response.path("id").textValue());
 
+                // Also set the currentCity title according to the city returned by NWS
+                TextView currentCity = findViewById(R.id.currentCity);
+                currentCity.setText(propertyNode.path("relativeLocation").path("properties").path("city").textValue() + "," + propertyNode.path("relativeLocation").path("properties").path("state").textValue());
+                currentCity.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.opensans_bold));
 
                 getForecastJSON(pointObject.getForecast());                 // Get some forecast data from the forecast (not hourly) URL
                 getHourlyForecastJSON(pointObject.getGridPointURL());       // Get data for hourly forecast card ("gridpoints" endpoint actually has the most detailed forecast...)
@@ -414,7 +429,12 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                     getMeasurementsURL(pointObject.getStationsURL());           // Get latest measurements URL from stations list
                 }
 
-                @Override
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+
+            @Override
             public void onFailure(Exception e) {
 
             }
@@ -430,6 +450,11 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                 JsonNode response = (JsonNode) object;
                 latestMeasurementsURL = response.path("observationStations").path(0).textValue() + "/observations/latest";  // Get station URL then append path end in order to get latest measures
                 getLatestMeasurements(latestMeasurementsURL);
+
+            }
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
 
             }
 
@@ -462,6 +487,11 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                 updateLatestMeasurementViews(measurements);
             }
 
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+
 
             @Override
             public void onFailure(Exception e) {
@@ -483,6 +513,15 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                 // Update the "atAGlance" textView with info from the first forecast node
                 glance.setText(periodsNode.path(0).path("detailedForecast").textValue());
 
+            }
+
+            @Override
+            public void onErrorResponse(VolleyError error){
+                /** Called if we get a 404 (or any other) error code. So far this has been seen
+                 *  with GPS coordinates that are over water, as NWS doesn't support "marine forecasts" */
+                ConstraintLayout todayLayout = findViewById(R.id.today_constraint_layout);
+                todayLayout.removeView(findViewById(R.id.glanceTitle));
+                Toast.makeText(getApplicationContext(), "NWS currently doesn't support daily forecasts for marine locations.", Toast.LENGTH_LONG);
             }
 
             @Override
@@ -568,6 +607,11 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                     renderer.setGradientStop(highestTemp + 5, Color.rgb(242, 96, 1));
                     renderer.setDisplayChartValues(true);
                 }
+            }
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
             }
 
 

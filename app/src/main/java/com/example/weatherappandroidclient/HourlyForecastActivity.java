@@ -8,6 +8,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.android.volley.VolleyError;
 import com.example.weatherappandroidclient.classes.NWSForecast;
 import com.example.weatherappandroidclient.classes.OnEventListener;
 import com.example.weatherappandroidclient.classes.VolleyServerRequest;
@@ -46,6 +47,11 @@ public class HourlyForecastActivity extends Activity {
             }
 
             @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+
+            @Override
             public void onFailure(Exception e) {
 
             }
@@ -69,6 +75,11 @@ public class HourlyForecastActivity extends Activity {
                     finalForecast += forecast.toString() + "\n";
                 }
                 forecastText.setText("Here's the hourly forecast: \n\n" + finalForecast);
+            }
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
             }
 
             @Override

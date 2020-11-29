@@ -64,7 +64,7 @@ public class SearchActivity extends AppCompatActivity {
             while (results.moveToNext()) {
                 SearchResultCard thisCard = new SearchResultCard(results.getString(results.getColumnIndex("city")),results.getString(results.getColumnIndex("state_name")),
                         results.getString(results.getColumnIndex("state_id")), results.getString(results.getColumnIndex("zips")),
-                        results.getLong(results.getColumnIndex("lat")), results.getLong(results.getColumnIndex("lng")));
+                        results.getDouble(results.getColumnIndex("lat")), results.getDouble(results.getColumnIndex("lng")));
                 searchCards.add(thisCard);
             }
         }

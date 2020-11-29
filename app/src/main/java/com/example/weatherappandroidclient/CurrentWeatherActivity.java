@@ -225,8 +225,8 @@ public class CurrentWeatherActivity extends AppCompatActivity {
         background = findViewById(R.id.background);
         window = getWindowManager();
 
-        if(getIntent().getExtras() != null) handleIntent(getIntent());
-        else {
+        //if(getIntent().getExtras() != null) handleIntent(getIntent());
+       // else {
             DatabaseHelper helper = new DatabaseHelper(this);
             try {
                 helper.createDatabase();
@@ -379,7 +379,7 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                 //we already have the permissions.
                 getLocation();
             }
-        }
+
     }
 
     private void handleIntent(Intent intent){

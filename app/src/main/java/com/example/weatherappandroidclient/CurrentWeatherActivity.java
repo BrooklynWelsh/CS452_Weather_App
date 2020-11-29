@@ -224,9 +224,7 @@ public class CurrentWeatherActivity extends AppCompatActivity {
         temp.setTextSize(getResources().getDimensionPixelSize(R.dimen.text_large));
         background = findViewById(R.id.background);
         window = getWindowManager();
-
-        //if(getIntent().getExtras() != null) handleIntent(getIntent());
-       // else {
+        
             DatabaseHelper helper = new DatabaseHelper(this);
             try {
                 helper.createDatabase();

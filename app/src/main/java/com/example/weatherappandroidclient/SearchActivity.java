@@ -46,12 +46,9 @@ public class SearchActivity extends AppCompatActivity {
 
     private Cursor getMatches(String query){
         SQLiteDatabase cityDB = DatabaseHelper.getHelper(this).getDatabase();
-        Cursor cursor = cityDB.query("citiesFts",new String[]{"city","state_id","state_name","lat","lng","zips"},"city_ascii MATCH ?",new String[]{"*"+query+"*"},null,null,null);
+        Cursor cursor = cityDB.query("citiesFts",new String[]{"city","state_id","state_name","lat","lng","zips"},"city MATCH ? AND state_id != \"PR\"",new String[]{"*"+query+"*"},null,null,null);
 
         if (cursor == null) {
-            return null;
-        } else if (!cursor.moveToFirst()) {
-            cursor.close();
             return null;
         }
         return cursor;

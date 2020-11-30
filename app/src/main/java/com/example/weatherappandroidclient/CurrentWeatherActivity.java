@@ -177,13 +177,6 @@ public class CurrentWeatherActivity extends AppCompatActivity {
     public static TextView todayText;
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.bottom_toolbar, menu);
-        return true;
-    }
-
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Picasso.get().setLoggingEnabled(true);
@@ -223,14 +216,10 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                 }
         );
 
-        // Set toolbar and disable app title
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
-        getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
-        getSupportActionBar().setCustomView(R.layout.top_toolbar_custom_layout);
 
         // Instantiate search view and associate it with the SearchActivity class
         SearchManager searchManager =   (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        SearchView searchView =         getSupportActionBar().getCustomView().findViewById(R.id.search);
+        SearchView searchView =         findViewById(R.id.search);
         searchView.setSearchableInfo(searchManager.getSearchableInfo(new ComponentName(this, SearchActivity.class)));
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {

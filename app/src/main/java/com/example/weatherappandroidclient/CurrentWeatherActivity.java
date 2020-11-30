@@ -868,36 +868,6 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                             // to handle the case where the user grants the permission. See the documentation
                             // for ActivityCompat#requestPermissions for more details.
                             return;
-                        }
-                else {
-                    Log.d("LOCATION REQUEST: ", "Couldn't find a valid database entry, getting GPS location.");
-                    startLocationUpdates();
-                }
-            }
-            else{
-                // TODO: Could probably store latitude and longitude so that we don't need to check last known location for coordinates
-                Log.d("DATABASE ENTRY FOUND: ", "Found a valid latest_measurements entry, using database info to populate views.");
-                fusedClient.getLastLocation().addOnSuccessListener(CurrentWeatherActivity.this, new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        // Got last known location. In some rare situations this can be null.
-                        if (location != null || ((int)location.getLongitude() != 0 && (int)location.getLatitude() != 0)) {
-                            pointURL = "https://api.weather.gov/points/" + location.getLatitude() + "," + location.getLongitude();
-                            //getForecastJSON(pointObject.getForecast());                 // Get some forecast data from the forecast (not hourly) URL
-                            //getHourlyForecastJSON(pointObject.getGridPointURL());       // Get data for hourly forecast card ("gridpoints" endpoint actually has the most detailed forecast...)
-
-                            CurrentWeatherActivity.this.runOnUiThread(new Runnable(){
-
-                                @Override
-                                public void run() {
-                                    updateLatestMeasurementViews(databaseResult);
-                                    try {
-                                        getPointJSON(pointURL, false);
-                                    } catch (MalformedURLException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            });
                         } else {
                             Log.d("LOCATION REQUEST: ", "Couldn't find a valid database entry, getting GPS location.");
                             startLocationUpdates();

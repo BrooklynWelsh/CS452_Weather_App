@@ -826,6 +826,7 @@ public class CurrentWeatherActivity extends AppCompatActivity {
                 break;
 
         }
+        cloudCoverIcon.getDrawable().setTint(Color.WHITE);
         ConstraintLayout todayLayout = findViewById(R.id.today_constraint_layout);
         TextView glanceTitle = findViewById(R.id.glanceTitle);
         glanceTitle.setText("Today at a Glance");
